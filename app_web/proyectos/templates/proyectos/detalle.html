@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>{{ proyecto.nombre }}</h2>
+<p>{{ proyecto.descripcion }}</p>
+<p>Fechas: {{ proyecto.fecha_inicio }} - {{ proyecto.fecha_fin|default:"Sin definir" }}</p>
+<h3>Tareas</h3>
+<ul>
+    {% for tarea in tareas %}
+        <li>{{ tarea.titulo }} ({{ tarea.estado }}) - Prioridad: {{ tarea.prioridad }}</li>
+    {% empty %}
+        <li>No hay tareas aún.</li>
+    {% endfor %}
+</ul>
+{% if user.es_gestor %}
+    <a href="{% url 'editar_proyecto' proyecto.id %}" class="btn btn-primary">Editar</a>
+    <a href="{% url 'eliminar_proyecto' proyecto.id %}" class="btn btn-danger">Eliminar</a>
+{% endif %}
+<a href="{% url 'lista_proyectos' %}" class="btn btn-secondary">Volver</a>
+{% endblock %}

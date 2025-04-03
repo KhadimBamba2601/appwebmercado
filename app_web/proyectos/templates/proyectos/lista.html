@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Lista de Proyectos</h2>
+<ul>
+    {% for proyecto in proyectos %}
+        <li><a href="{% url 'detalle_proyecto' proyecto.id %}">{{ proyecto.nombre }}</a> - {{ proyecto.descripcion }}</li>
+    {% empty %}
+        <li>No hay proyectos aún.</li>
+    {% endfor %}
+</ul>
+{% if user.es_gestor %}
+    <a href="{% url 'crear_proyecto' %}" class="btn btn-primary">Crear Proyecto</a>
+{% endif %}
+{% endblock %}

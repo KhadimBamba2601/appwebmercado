@@ -10,3 +10,12 @@ class Usuario(AbstractUser):
     )
     rol = models.CharField(max_length=20, choices=ROL_CHOICES, default='colaborador')
     habilidades = models.ManyToManyField('analisis_mercado.Habilidad', blank=True)
+
+    def es_admin(self):
+        return self.rol == 'admin'
+    
+    def es_gestor(self):
+        return self.rol == 'gestor'
+    
+    def es_colaborador(self):
+        return self.rol == 'colaborador'
