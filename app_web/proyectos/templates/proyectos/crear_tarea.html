@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 {% block content %}
-<h2>Crear Nuevo Proyecto</h2>
+<h2>Crear Nueva Tarea para {{ proyecto.nombre }}</h2>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit" class="btn btn-primary">Crear</button>
-    <a href="{% url 'lista_proyectos' %}" class="btn btn-secondary">Cancelar</a>
+    <a href="{% url 'detalle_proyecto' proyecto.id %}" class="btn btn-secondary">Cancelar</a>
 </form>
 {% endblock %}

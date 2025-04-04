@@ -2,18 +2,30 @@
 {% block content %}
 <h2>{{ proyecto.nombre }}</h2>
 <p>{{ proyecto.descripcion }}</p>
-<p>Fechas: {{ proyecto.fecha_inicio }} - {{ proyecto.fecha_fin|default:"Sin definir" }}</p>
+<p><strong>Fecha de inicio:</strong> {{ proyecto.fecha_inicio }}</p>
+{% if proyecto.fecha_fin %}
+<p><strong>Fecha de fin:</strong> {{ proyecto.fecha_fin }}</p>
+{% endif %}
+<p><strong>Gestor:</strong> {{ proyecto.gestor.username }}</p>
+
 <h3>Tareas</h3>
+{% if tareas %}
 <ul>
     {% for tarea in tareas %}
-        <li>{{ tarea.titulo }} ({{ tarea.estado }}) - Prioridad: {{ tarea.prioridad }}</li>
-    {% empty %}
-        <li>No hay tareas aún.</li>
+    <li>
+        {{ tarea.titulo }} - {{ tarea.estado }}
+        <a href="{% url 'editar_tarea' tarea.id %}" class="btn btn-sm btn-primary">Editar</a>
+        <a href="{% url 'eliminar_tarea' tarea.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+        {% if tarea.estado != 'completada' %}
+        <a href="{% url 'completar_tarea' tarea.id %}" class="btn btn-sm btn-success">Completar</a>
+        {% endif %}
+    </li>
     {% endfor %}
 </ul>
-{% if user.es_gestor %}
-    <a href="{% url 'editar_proyecto' proyecto.id %}" class="btn btn-primary">Editar</a>
-    <a href="{% url 'eliminar_proyecto' proyecto.id %}" class="btn btn-danger">Eliminar</a>
+{% else %}
+<p>No hay tareas para este proyecto.</p>
 {% endif %}
-<a href="{% url 'lista_proyectos' %}" class="btn btn-secondary">Volver</a>
+
+<a href="{% url 'crear_tarea' proyecto.id %}" class="btn btn-primary">Agregar Tarea</a>
+<a href="{% url 'lista_proyectos' %}" class="btn btn-secondary">Volver a Proyectos</a>
 {% endblock %}

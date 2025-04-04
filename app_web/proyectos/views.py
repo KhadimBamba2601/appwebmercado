@@ -20,7 +20,7 @@ def lista_proyectos(request):
     return render(request, 'proyectos/lista.html', {'proyectos': proyectos})
 
 @login_required
-@rol_requerido('gestor', 'admin')  # Permitir a gestores y admins
+@rol_requerido('gestor', 'admin')
 def crear_proyecto(request):
     if request.method == 'POST':
         form = ProyectoForm(request.POST)
@@ -60,3 +60,51 @@ def detalle_proyecto(request, id):
     proyecto = get_object_or_404(Proyecto, id=id)
     tareas = proyecto.tareas.all()
     return render(request, 'proyectos/detalle.html', {'proyecto': proyecto, 'tareas': tareas})
+
+@login_required
+@rol_requerido('gestor', 'admin')
+def crear_tarea(request, proyecto_id):
+    proyecto = get_object_or_404(Proyecto, id=proyecto_id)
+    if request.method == 'POST':
+        form = TareaForm(request.POST)
+        if form.is_valid():
+            tarea = form.save(commit=False)
+            tarea.proyecto = proyecto
+            tarea.save()
+            form.save_m2m()  # Guarda las relaciones muchos-a-muchos
+            return redirect('detalle_proyecto', id=proyecto.id)
+    else:
+        form = TareaForm()
+    return render(request, 'proyectos/crear_tarea.html', {'form': form, 'proyecto': proyecto})
+
+@login_required
+@rol_requerido('gestor', 'admin')
+def editar_tarea(request, id):
+    tarea = get_object_or_404(Tarea, id=id)
+    if request.method == 'POST':
+        form = TareaForm(request.POST, instance=tarea)
+        if form.is_valid():
+            form.save()
+            return redirect('detalle_proyecto', id=tarea.proyecto.id)
+    else:
+        form = TareaForm(instance=tarea)
+    return render(request, 'proyectos/editar_tarea.html', {'form': form, 'tarea': tarea})
+
+@login_required
+@rol_requerido('gestor', 'admin')
+def eliminar_tarea(request, id):
+    tarea = get_object_or_404(Tarea, id=id)
+    proyecto_id = tarea.proyecto.id
+    if request.method == 'POST':
+        tarea.delete()
+        return redirect('detalle_proyecto', id=proyecto_id)
+    return render(request, 'proyectos/eliminar_tarea.html', {'tarea': tarea})
+
+@login_required
+def completar_tarea(request, id):
+    tarea = get_object_or_404(Tarea, id=id)
+    if request.method == 'POST':
+        tarea.estado = 'completada'
+        tarea.save()
+        return redirect('detalle_proyecto', id=tarea.proyecto.id)
+    return render(request, 'proyectos/completar_tarea.html', {'tarea': tarea})

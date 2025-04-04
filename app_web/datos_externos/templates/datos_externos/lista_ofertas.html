@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Ofertas de Empleo Importadas</h2>
+{% if ofertas %}
+    <ul>
+        {% for oferta in ofertas %}
+            <li>{{ oferta.titulo }} - {{ oferta.empresa }} - {{ oferta.ubicacion }} - {{ oferta.fuente }}</li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <p>No hay ofertas guardadas.</p>
+{% endif %}
+<a href="{% url 'importar_ofertas' %}" class="btn btn-secondary">Volver a importar</a>
+{% endblock %}

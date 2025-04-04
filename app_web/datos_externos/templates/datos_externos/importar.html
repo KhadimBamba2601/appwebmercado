@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Importar Ofertas de Empleo</h2>
+{% if mensaje %}
+    <p>{{ mensaje }}</p>
+{% else %}
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit" class="btn btn-primary">Importar desde Tecnoempleo</button>
+    </form>
+{% endif %}
+<a href="{% url 'lista_proyectos' %}" class="btn btn-secondary">Volver</a>
+{% endblock %}
