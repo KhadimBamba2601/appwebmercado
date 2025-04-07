@@ -1,14 +1,75 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Ofertas de Empleo Importadas</h2>
+
+<form method="get" class="mb-4">
+    <div class="row">
+        <div class="col-md-3">
+            <label for="titulo">Título:</label>
+            <input type="text" name="titulo" id="titulo" class="form-control" value="{{ titulo }}">
+        </div>
+        <div class="col-md-3">
+            <label for="empresa">Empresa:</label>
+            <input type="text" name="empresa" id="empresa" class="form-control" value="{{ empresa }}">
+        </div>
+        <div class="col-md-3">
+            <label for="ubicacion">Ubicación:</label>
+            <input type="text" name="ubicacion" id="ubicacion" class="form-control" value="{{ ubicacion }}">
+        </div>
+        <div class="col-md-3">
+            <label for="fuente">Fuente:</label>
+            <select name="fuente" id="fuente" class="form-control">
+                <option value="">Todas</option>
+                <option value="Tecnoempleo" {% if fuente == "Tecnoempleo" %}selected{% endif %}>Tecnoempleo</option>
+                <option value="LinkedIn" {% if fuente == "LinkedIn" %}selected{% endif %}>LinkedIn</option>
+                <option value="InfoJobs" {% if fuente == "InfoJobs" %}selected{% endif %}>InfoJobs</option>
+            </select>
+        </div>
+    </div>
+    <div class="row mt-2">
+        <div class="col-md-3">
+            <label for="tipo_trabajo">Tipo de Trabajo:</label>
+            <select name="tipo_trabajo" id="tipo_trabajo" class="form-control">
+                <option value="">Todos</option>
+                {% for tipo in tipos_trabajo %}
+                    <option value="{{ tipo }}" {% if tipo_trabajo == tipo %}selected{% endif %}>{{ tipo }}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    <button type="submit" class="btn btn-primary mt-2">Filtrar</button>
+    <a href="{% url 'lista_ofertas' %}" class="btn btn-secondary mt-2">Limpiar</a>
+</form>
+
 {% if ofertas %}
-    <ul>
-        {% for oferta in ofertas %}
-            <li>{{ oferta.titulo }} - {{ oferta.empresa }} - {{ oferta.ubicacion }} - {{ oferta.fuente }}</li>
-        {% endfor %}
-    </ul>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Empresa</th>
+                <th>Ubicación</th>
+                <th>Tipo de Trabajo</th>
+                <th>Fuente</th>
+                <th>Habilidades</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for oferta in ofertas %}
+                <tr>
+                    <td>{{ oferta.titulo }}</td>
+                    <td>{{ oferta.empresa }}</td>
+                    <td>{{ oferta.ubicacion }}</td>
+                    <td>{{ oferta.tipo_trabajo }}</td>
+                    <td>{{ oferta.fuente }}</td>
+                    <td>{{ oferta.habilidades.all|join:", " }}</td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p>Total: {{ ofertas.count }} ofertas</p>
 {% else %}
-    <p>No hay ofertas guardadas.</p>
+    <p>No hay ofertas que coincidan con los filtros.</p>
 {% endif %}
+
 <a href="{% url 'importar_ofertas' %}" class="btn btn-secondary">Volver a importar</a>
 {% endblock %}
