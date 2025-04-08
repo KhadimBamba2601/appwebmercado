@@ -11,8 +11,8 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'usuarios',
-    'proyectos',
     'analisis_mercado',
+    'proyectos',
     'motor_ia',
     'datos_externos',
 ]

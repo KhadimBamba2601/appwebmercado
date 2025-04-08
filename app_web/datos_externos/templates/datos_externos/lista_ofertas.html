@@ -4,27 +4,10 @@
 
 <form method="get" class="mb-4">
     <div class="row">
-        <div class="col-md-3">
-            <label for="titulo">Título:</label>
-            <input type="text" name="titulo" id="titulo" class="form-control" value="{{ titulo }}">
-        </div>
-        <div class="col-md-3">
-            <label for="empresa">Empresa:</label>
-            <input type="text" name="empresa" id="empresa" class="form-control" value="{{ empresa }}">
-        </div>
-        <div class="col-md-3">
-            <label for="ubicacion">Ubicación:</label>
-            <input type="text" name="ubicacion" id="ubicacion" class="form-control" value="{{ ubicacion }}">
-        </div>
-        <div class="col-md-3">
-            <label for="fuente">Fuente:</label>
-            <select name="fuente" id="fuente" class="form-control">
-                <option value="">Todas</option>
-                <option value="Tecnoempleo" {% if fuente == "Tecnoempleo" %}selected{% endif %}>Tecnoempleo</option>
-                <option value="LinkedIn" {% if fuente == "LinkedIn" %}selected{% endif %}>LinkedIn</option>
-                <option value="InfoJobs" {% if fuente == "InfoJobs" %}selected{% endif %}>InfoJobs</option>
-            </select>
-        </div>
+        <div class="col-md-3"><label for="titulo">Título:</label><input type="text" name="titulo" id="titulo" class="form-control" value="{{ titulo }}"></div>
+        <div class="col-md-3"><label for="empresa">Empresa:</label><input type="text" name="empresa" id="empresa" class="form-control" value="{{ empresa }}"></div>
+        <div class="col-md-3"><label for="ubicacion">Ubicación:</label><input type="text" name="ubicacion" id="ubicacion" class="form-control" value="{{ ubicacion }}"></div>
+        <div class="col-md-3"><label for="fuente">Fuente:</label><select name="fuente" id="fuente" class="form-control"><option value="">Todas</option><option value="Tecnoempleo" {% if fuente == "Tecnoempleo" %}selected{% endif %}>Tecnoempleo</option><option value="LinkedIn" {% if fuente == "LinkedIn" %}selected{% endif %}>LinkedIn</option><option value="InfoJobs" {% if fuente == "InfoJobs" %}selected{% endif %}>InfoJobs</option></select></div>
     </div>
     <div class="row mt-2">
         <div class="col-md-3">
@@ -43,16 +26,7 @@
 
 {% if ofertas %}
     <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Título</th>
-                <th>Empresa</th>
-                <th>Ubicación</th>
-                <th>Tipo de Trabajo</th>
-                <th>Fuente</th>
-                <th>Habilidades</th>
-            </tr>
-        </thead>
+        <thead><tr><th>Título</th><th>Empresa</th><th>Ubicación</th><th>Tipo de Trabajo</th><th>Salario</th><th>Fuente</th><th>Habilidades</th></tr></thead>
         <tbody>
             {% for oferta in ofertas %}
                 <tr>
@@ -60,6 +34,7 @@
                     <td>{{ oferta.empresa }}</td>
                     <td>{{ oferta.ubicacion }}</td>
                     <td>{{ oferta.tipo_trabajo }}</td>
+                    <td>{{ oferta.salario|default:"No disponible" }}</td>
                     <td>{{ oferta.fuente }}</td>
                     <td>{{ oferta.habilidades.all|join:", " }}</td>
                 </tr>

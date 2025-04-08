@@ -11,7 +11,7 @@ class OfertaEmpleo(models.Model):
     empresa = models.CharField(max_length=100)
     ubicacion = models.CharField(max_length=100, blank=True)
     habilidades = models.ManyToManyField(Habilidad, blank=True)
-    salario = models.CharField(max_length=50, blank=True, null=True)
+    salario = models.CharField(max_length=500, blank=True, null=True)
     fecha_publicacion = models.DateField()
     fuente = models.CharField(max_length=50)  # Ejemplo: "InfoJobs", "Tecnoempleo", "LinkedIn"
     tipo_trabajo = models.CharField(max_length=50, default="No especificado")  # Nuevo campo

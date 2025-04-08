@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required
 from usuarios.decorators import rol_requerido
 from .scraper import scrape_tecnoempleo, scrape_infojobs, scrape_linkedin, guardar_ofertas
-from analisis_mercado.models import OfertaEmpleo
+from analisis_mercado.models import OfertaEmpleo, Habilidad
 
 @login_required
 @rol_requerido('admin')
@@ -61,4 +61,13 @@ def lista_ofertas(request):
         'fuente': fuente,
         'tipo_trabajo': tipo_trabajo,
         'tipos_trabajo': tipos_trabajo
+    })
+from django.db.models import Avg, Count
+@login_required
+def analisis_ofertas(request):
+    habilidades_count = Habilidad.objects.annotate(num_ofertas=Count('ofertaempleo')).order_by('-num_ofertas')[:10]
+    salario_promedio = OfertaEmpleo.objects.filter(salario__isnull=False).aggregate(Avg('salario'))
+    return render(request, 'datos_externos/analisis.html', {
+        'habilidades': habilidades_count,
+        'salario_promedio': salario_promedio
     })
