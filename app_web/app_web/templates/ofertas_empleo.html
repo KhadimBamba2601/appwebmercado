@@ -1,0 +1,75 @@
+<!-- app_web/templates/ofertas_empleo.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1 class="my-4 text-center">Ofertas de Empleo</h1>
+
+    <!-- Formulario de búsqueda -->
+    <form method="get" action="" class="mb-4">
+        <div class="row g-3">
+            <div class="col-md-4">
+                <input type="text" name="titulo" value="{{ titulo }}" class="form-control" placeholder="Título del puesto">
+            </div>
+            <div class="col-md-3">
+                <input type="text" name="ubicacion" value="{{ ubicacion }}" class="form-control" placeholder="Ubicación">
+            </div>
+            <div class="col-md-3">
+                <select name="tipo_trabajo" class="form-select">
+                    <option value="">Todos los tipos</option>
+                    {% for tipo in tipos_trabajo %}
+                        <option value="{{ tipo }}" {% if tipo == tipo_trabajo %}selected{% endif %}>{{ tipo }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-success w-100">Buscar</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Lista de ofertas -->
+    {% if ofertas %}<div class="row">
+        {% for oferta in ofertas %}
+            <div class="col-md-4 mb-3">
+                <div class="card">
+                    <div class="card-body">
+                    <h5 class="card-title">{{ oferta.titulo }}</h5>
+                    <p class="card-text"><strong>Empresa:</strong> {{ oferta.empresa }}</p>
+                    <p class="card-text"><strong>Ubicación:</strong> {{ oferta.ubicacion }}</p>
+                    <p class="card-text"><strong>Tipo de trabajo:</strong> {{ oferta.tipo_trabajo }}</p>
+                    <p class="card-text"><strong>Salario:</strong> {{ oferta.salario|default:"No especificado" }}</p>
+                    <p class="card-text"><strong>Fuente:</strong> {{ oferta.fuente }}</p>
+                    <p class="card-text"><strong>Fecha:</strong> {{ oferta.fecha_publicacion }}</p>
+                    <p class="card-text"><strong>Habilidades:</strong> 
+                        {% for habilidad in oferta.habilidades.all %}
+                            {{ habilidad.nombre }}{% if not forloop.last %}, {% endif %}
+                        {% empty %}
+                            Ninguna
+                        {% endfor %}
+                    </p>
+                </div>
+            </div>
+        {% endfor %}
+        <nav aria-label="Paginación">
+            <ul class="pagination justify-content-center">
+                {% if ofertas.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ ofertas.previous_page_number }}&titulo={{ titulo }}&ubicacion={{ ubicacion }}&tipo_trabajo={{ tipo_trabajo }}">Anterior</a>
+                    </li>
+                {% endif %}
+                {% for num in ofertas.paginator.page_range %}
+                    <li class="page-item {% if ofertas.number == num %}active{% endif %}">
+                        <a class="page-link" href="?page={{ num }}&titulo={{ titulo }}&ubicacion={{ ubicacion }}&tipo_trabajo={{ tipo_trabajo }}">{{ num }}</a>
+                    </li>
+                {% endfor %}
+                {% if ofertas.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ ofertas.next_page_number }}&titulo={{ titulo }}&ubicacion={{ ubicacion }}&tipo_trabajo={{ tipo_trabajo }}">Siguiente</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+    {% else %}
+        <div class="alert alert-info text-center">No se encontraron ofertas.</div>
+    {% endif %}
+{% endblock %}

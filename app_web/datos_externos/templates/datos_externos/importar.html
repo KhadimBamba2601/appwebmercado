@@ -1,27 +1,34 @@
 {% extends "base.html" %}
 {% block content %}
 <h2>Importar Ofertas de Empleo</h2>
-<form method="post">
-    {% csrf_token %}
-    <div class="form-group">
-        <label for="fuente">Fuente:</label>
-        <select name="fuente" id="fuente" class="form-control">
-            <option value="Tecnoempleo">Tecnoempleo</option>
-            <option value="LinkedIn">LinkedIn</option>
-            <option value="InfoJobs">InfoJobs</option>
-        </select>
-    </div>
-    <div class="form-group">
-        <label for="titulo">Título:</label>
-        <input type="text" name="titulo" id="titulo" class="form-control">
-    </div>
-    <div class="form-group">
-        <label for="ubicacion">Ubicación:</label>
-        <input type="text" name="ubicacion" id="ubicacion" class="form-control">
-    </div>
-    <button type="submit" class="btn btn-primary">Importar</button>
-</form>
+
 {% if mensaje %}
     <p>{{ mensaje }}</p>
+    <a href="{% url 'lista_ofertas' %}" class="btn btn-primary">Ver Ofertas</a>
+{% else %}
+    <form method="post" class="mb-4">
+        {% csrf_token %}
+        <div class="row">
+            <div class="col-md-4">
+                <label for="fuente">Fuente:</label>
+                <select name="fuente" id="fuente" class="form-control">
+                    <option value="Tecnoempleo">Tecnoempleo</option>
+                    <option value="InfoJobs">InfoJobs</option>
+                    <option value="LinkedIn">LinkedIn</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label for="titulo">Título (opcional):</label>
+                <input type="text" name="titulo" id="titulo" class="form-control" placeholder="Ej: Programador Python">
+            </div>
+            <div class="col-md-4">
+                <label for="ubicacion">Ubicación (opcional):</label>
+                <input type="text" name="ubicacion" id="ubicacion" class="form-control" placeholder="Ej: Madrid">
+            </div>
+        </div>
+        <button type="submit" class="btn btn-primary mt-3">Importar</button>
+    </form>
 {% endif %}
+
+<a href="{% url 'lista_ofertas' %}" class="btn btn-secondary">Volver a Lista de Ofertas</a>
 {% endblock %}

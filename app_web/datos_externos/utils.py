@@ -1,7 +1,7 @@
 # datos_externos/utils.py
 import re
 from django.utils import timezone
-from app_web.analisis_mercado.models import OfertaEmpleo, Habilidad  # Ajustado
+from analisis_mercado.models import OfertaEmpleo, Habilidad  # Ajustado
 
 # Patrón para capturar salarios
 SALARIO_PATTERN = re.compile(r'(\d+[.,]?\d*\s*(?:€|k|K|$)(?:\s*-\s*\d+[.,]?\d*\s*(?:€|k|K|$))?(?:\s*b?ruto?/[ha]nual)?)', re.IGNORECASE)

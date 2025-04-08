@@ -1,0 +1,39 @@
+<!-- app_web/templates/index.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <div class="text-center my-5">
+        <h1 class="display-4">Bienvenido a Gestión de Tareas y Mercado</h1>
+        <p class="lead">Explora las diferentes secciones de la aplicación:</p>
+    </div>
+
+    <div class="row justify-content-center">
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Ofertas de Empleo</h5>
+                    <p class="card-text">Busca y explora ofertas de empleo scrapeadas de múltiples fuentes.</p>
+                    <a href="{% url 'ofertas_empleo' %}" class="btn btn-primary">Ir a Ofertas</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Proyectos</h5>
+                    <p class="card-text">Gestiona tus proyectos y tareas.</p>
+                    <a href="{% url 'proyectos:index' %}" class="btn btn-primary">Ir a Proyectos</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Datos Externos</h5>
+                    <p class="card-text">Accede a datos externos recopilados.</p>
+                    <a href="{% url 'datos_externos:index' %}" class="btn btn-primary">Ir a Datos</a>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}

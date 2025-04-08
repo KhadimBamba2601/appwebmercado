@@ -3,4 +3,4 @@ from django.apps import AppConfig
 
 class AnalisisMercadoConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'app_web.analisis_mercado'
+    name = 'analisis_mercado'
