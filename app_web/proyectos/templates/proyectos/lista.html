@@ -5,14 +5,14 @@
 <ul>
     {% for proyecto in proyectos %}
     <li>
-        <a href="{% url 'detalle_proyecto' proyecto.id %}">{{ proyecto.nombre }}</a>
-        <a href="{% url 'editar_proyecto' proyecto.id %}" class="btn btn-sm btn-primary">Editar</a>
-        <a href="{% url 'eliminar_proyecto' proyecto.id %}" class="btn btn-sm btn-danger">Eliminar</a>
+        <a href="{% url 'proyectos:detalle_proyecto' proyecto.id %}">{{ proyecto.nombre }}</a>
+        <a href="{% url 'proyectos:editar_proyecto' proyecto.id %}" class="btn btn-sm btn-primary">Editar</a>
+        <a href="{% url 'proyectos:eliminar_proyecto' proyecto.id %}" class="btn btn-sm btn-danger">Eliminar</a>
     </li>
     {% endfor %}
 </ul>
 {% else %}
 <p>No hay proyectos disponibles.</p>
 {% endif %}
-<a href="{% url 'crear_proyecto' %}" class="btn btn-primary">Crear Proyecto</a>
+<a href="{% url 'proyectos:crear_proyecto' %}" class="btn btn-primary">Crear Proyecto</a>
 {% endblock %}

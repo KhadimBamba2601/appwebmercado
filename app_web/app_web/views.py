@@ -15,7 +15,7 @@ def ofertas_empleo(request):
     ubicacion = request.GET.get('ubicacion', '')
     tipo_trabajo = request.GET.get('tipo_trabajo', '')
 
-    ofertas = OfertaEmpleo.objects.all()
+    ofertas = OfertaEmpleo.objects.all().order_by('-fecha_publicacion', 'titulo')
     if titulo:
         ofertas = ofertas.filter(titulo__icontains=titulo)
     if ubicacion:
