@@ -1,12 +1,10 @@
 # datos_externos/utils.py
 import re
 from django.utils import timezone
-from analisis_mercado.models import OfertaEmpleo, Habilidad  # Ajustado
+from analisis_mercado.models import OfertaEmpleo, Habilidad
 
-# Patrón para capturar salarios
 SALARIO_PATTERN = re.compile(r'(\d+[.,]?\d*\s*(?:€|k|K|$)(?:\s*-\s*\d+[.,]?\d*\s*(?:€|k|K|$))?(?:\s*b?ruto?/[ha]nual)?)', re.IGNORECASE)
 
-# Palabras clave para tipo de trabajo
 TIPO_TRABAJO_KEYWORDS = {
     "Remoto": ["remoto", "teletrabajo", "full remote", "100% remoto"],
     "Híbrido": ["híbrido", "hibrido", "hybrid", "parcialmente remoto"],
@@ -35,7 +33,8 @@ def guardar_ofertas(ofertas):
                 'salario': oferta_data.get('salario', ''),
                 'tipo_trabajo': oferta_data.get('tipo_trabajo', 'No especificado'),
                 'fecha_publicacion': oferta_data.get('fecha_publicacion', timezone.now().date()),
-                'fuente': oferta_data['fuente']
+                'fuente': oferta_data['fuente'],
+                'url': oferta_data.get('url', '')  # Guardamos la URL
             }
         )
         for habilidad_nombre in oferta_data['habilidades']:

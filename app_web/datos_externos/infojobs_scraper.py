@@ -26,65 +26,91 @@ def scrape_infojobs(titulo='', ubicacion=''):
         print("Por favor, completa la verificación manual en la ventana del navegador. Tienes 60 segundos...")
         time.sleep(60)
         
+        # Hacer scroll para cargar todos los grupos de ofertas
+        print("Haciendo scroll para cargar todas las ofertas...")
+        last_height = driver.execute_script("return document.body.scrollHeight")
+        while True:
+            driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
+            time.sleep(3)
+            new_height = driver.execute_script("return document.body.scrollHeight")
+            if new_height == last_height:
+                break
+            last_height = new_height
+        
+        # Esperar a que todos los .ij-List-item estén presentes
         from selenium.webdriver.common.by import By
         from selenium.webdriver.support.ui import WebDriverWait
         from selenium.webdriver.support import expected_conditions as EC
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CLASS_NAME, "sui-AtomCard")))
+        WebDriverWait(driver, 20).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "sui-AtomCard")))
         
         soup = BeautifulSoup(driver.page_source, 'html.parser')
+        
+        # Buscar grupos
+        grupos = soup.select('.ij-List-item.sui-PrimitiveLinkBox')
+        print(f"Se encontraron {len(grupos)} grupos '.ij-List-item.sui-PrimitiveLinkBox'")
+        
         ofertas = []
-        for oferta in soup.select('.sui-AtomCard'):
-            titulo_elem = oferta.select_one('.ij-OfferCardContent-description-title-link')
-            empresa_elem = oferta.select_one('.ij-OfferCardContent-description-subtitle-link')
-            ubicacion_elem = oferta.select_one('.ij-OfferCardContent-description-list-item span')
-            descripcion_elem = oferta.select_one('.ij-OfferCardContent-description-description')
-            salario_elem = oferta.select_one('.ij-OfferCardContent-description-salary-info')
+        for i, grupo in enumerate(grupos, 1):
+            oferta_elements = grupo.find_all('div', class_='sui-AtomCard')
+            print(f"Grupo {i}: {len(oferta_elements)} elementos '.sui-AtomCard'")
+            
+            for oferta in oferta_elements:
+                titulo_elem = oferta.select_one('.ij-OfferCardContent-description-title-link')
+                empresa_elem = oferta.select_one('.ij-OfferCardContent-description-subtitle-link')
+                ubicacion_elem = oferta.select_one('.ij-OfferCardContent-description-list-item span')
+                descripcion_elem = oferta.select_one('.ij-OfferCardContent-description-description')
+                salario_elem = oferta.select_one('.ij-OfferCardContent-description-salary-info')
 
+            # Extraer título y URL
             titulo_oferta = titulo_elem.text.strip() if titulo_elem else "Sin título"
-            empresa = empresa_elem.text.strip() if empresa_elem else "Sin empresa"
-            ubicacion_oferta = ubicacion_elem.text.strip() if ubicacion_elem else ""
-            habilidades = []
-            descripcion = descripcion_elem.text.strip() if descripcion_elem else ""
-            salario_raw = salario_elem.text.strip() if salario_elem else ""
-            if not salario_raw and ("salario" in descripcion.lower() or "€" in descripcion or "k" in descripcion.lower()):
-                salario_raw = descripcion
+            href = titulo_elem['href'] if titulo_elem and 'href' in titulo_elem.attrs else ""
+            # Comprobar si el href es relativo o absoluto
+            if href.startswith('http'):
+                url_oferta = href  # Ya es una URL absoluta
+            else:
+                url_oferta = "https://www.infojobs.net" + href  # Añadir prefijo si es relativo
+                print(f"URL extraída: {url_oferta}")
 
-            # Buscar salario
-            salario = ""
-            if salario_raw:
-                matches = SALARIO_PATTERN.findall(salario_raw)
-                if matches and "Más de" not in salario_raw:
-                    salario = next((m for m in matches if '-' in m), matches[0])
+                empresa = empresa_elem.text.strip() if empresa_elem else "Sin empresa"
+                ubicacion_oferta = ubicacion_elem.text.strip() if ubicacion_elem else ""
+                habilidades = []
+                descripcion = descripcion_elem.text.strip() if descripcion_elem else ""
+                salario_raw = salario_elem.text.strip() if salario_elem else ""
+                if not salario_raw and ("salario" in descripcion.lower() or "€" in descripcion or "k" in descripcion.lower()):
+                    salario_raw = descripcion
 
-            # Extraer habilidades desde la descripción
-            palabras_clave = ['Java', 'Spring', 'Node.js', 'Python', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'R', 'Data', 'JavaScript', 'React', 'Angular']
-            habilidades = [palabra for palabra in palabras_clave if palabra.lower() in descripcion.lower()]
+                # Buscar salario
+                salario = ""
+                if salario_raw:
+                    matches = SALARIO_PATTERN.findall(salario_raw)
+                    if matches and "Más de" not in salario_raw:
+                        salario = next((m for m in matches if '-' in m), matches[0])
 
-            # Determinar tipo de trabajo
-            tipo_trabajo = "No especificado"
-            texto_lower = (ubicacion_oferta + " " + descripcion).lower()
-            for tipo, keywords in TIPO_TRABAJO_KEYWORDS.items():
-                if any(kw in texto_lower for kw in keywords):
-                    tipo_trabajo = tipo
-                    break
+                # Extraer habilidades desde la descripción
+                palabras_clave = ['Java', 'Spring', 'Node.js', 'Python','API','REST', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'Azure', 'Android', 'iOS', 'Front-end','Forntend', 'Backend','Git','PMP','informatica', 'ciberseguridad','Zapier', 'ChatGPT','Chat GPT', 'Back-end', 'Swift', 'HTML5', 'Data', 'UX', 'UI','windows','Jira','Selenium', 'cobol','Linux','Software', 'JavaScript', 'React', 'Angular']
+                habilidades = [palabra for palabra in palabras_clave if palabra.lower() in descripcion.lower()]
 
-            print(f"Título encontrado: \"{titulo_oferta}\"")
-            print(f"Empresa encontrada: \"{empresa}\"")
-            print(f"Ubicación encontrada: \"{ubicacion_oferta}\"")
-            print(f"Tipo de trabajo: \"{tipo_trabajo}\"")
-            print(f"Salario encontrado: \"{salario}\"")
-            print(f"Habilidades encontradas: {habilidades}")
+                # Determinar tipo de trabajo
+                tipo_trabajo = "No especificado"
+                texto_lower = (ubicacion_oferta + " " + descripcion).lower()
+                for tipo, keywords in TIPO_TRABAJO_KEYWORDS.items():
+                    if any(kw in texto_lower for kw in keywords):
+                        tipo_trabajo = tipo
+                        break
 
-            ofertas.append({
-                'titulo': titulo_oferta,
-                'empresa': empresa,
-                'ubicacion': ubicacion_oferta,
-                'habilidades': habilidades,
-                'tipo_trabajo': tipo_trabajo,
-                'salario': salario,
-                'fecha_publicacion': timezone.now().date(),
-                'fuente': 'InfoJobs'
-            })
+                ofertas.append({
+                    'titulo': titulo_oferta,
+                    'empresa': empresa,
+                    'ubicacion': ubicacion_oferta,
+                    'habilidades': habilidades,
+                    'tipo_trabajo': tipo_trabajo,
+                    'salario': salario,
+                    'fecha_publicacion': timezone.now().date(),
+                    'fuente': 'InfoJobs',
+                    'url': url_oferta
+                })
+        
+        print(f"Total de ofertas procesadas: {len(ofertas)}")
         return ofertas
     except Exception as e:
         print(f"Error en scrape_infojobs: {e}")

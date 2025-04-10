@@ -10,7 +10,7 @@ ALLOWED_HOSTS = []
 INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.auth',
-    'analisis_mercado',  # Ajustado para reflejar la ubicación real
+    'analisis_mercado',  # Ruta completa al módulo
 ]
 
 MIDDLEWARE = [

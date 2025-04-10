@@ -4,7 +4,7 @@
 
 {% if mensaje %}
     <p>{{ mensaje }}</p>
-    <a href="{% url 'lista_ofertas' %}" class="btn btn-primary">Ver Ofertas</a>
+    <a href="{% url 'datos_externos:lista_ofertas' %}" class="btn btn-primary">Ver Ofertas</a>
 {% else %}
     <form method="post" class="mb-4">
         {% csrf_token %}
@@ -30,5 +30,5 @@
     </form>
 {% endif %}
 
-<a href="{% url 'lista_ofertas' %}" class="btn btn-secondary">Volver a Lista de Ofertas</a>
+<a href="{% url 'datos_externos:lista_ofertas' %}" class="btn btn-secondary">Volver a Lista de Ofertas</a>
 {% endblock %}

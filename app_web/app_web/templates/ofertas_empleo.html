@@ -28,28 +28,44 @@
     </form>
 
     <!-- Lista de ofertas -->
-    {% if ofertas %}<div class="row">
+    {% if ofertas %}
         {% for oferta in ofertas %}
-            <div class="col-md-4 mb-3">
-                <div class="card">
-                    <div class="card-body">
-                    <h5 class="card-title">{{ oferta.titulo }}</h5>
-                    <p class="card-text"><strong>Empresa:</strong> {{ oferta.empresa }}</p>
-                    <p class="card-text"><strong>Ubicación:</strong> {{ oferta.ubicacion }}</p>
-                    <p class="card-text"><strong>Tipo de trabajo:</strong> {{ oferta.tipo_trabajo }}</p>
-                    <p class="card-text"><strong>Salario:</strong> {{ oferta.salario|default:"No especificado" }}</p>
-                    <p class="card-text"><strong>Fuente:</strong> {{ oferta.fuente }}</p>
-                    <p class="card-text"><strong>Fecha:</strong> {{ oferta.fecha_publicacion }}</p>
-                    <p class="card-text"><strong>Habilidades:</strong> 
-                        {% for habilidad in oferta.habilidades.all %}
-                            {{ habilidad.nombre }}{% if not forloop.last %}, {% endif %}
-                        {% empty %}
-                            Ninguna
-                        {% endfor %}
-                    </p>
+            <div class="card mb-3">
+                <div class="row g-0">
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="card-body">
+                            <h5 class="card-title">
+                                <i class="bi bi-briefcase"></i>
+                                <a href="{{ oferta.url }}" target="_blank" rel="noopener noreferrer">{{ oferta.titulo }}</a>
+                            </h5>
+                            <p class="card-text"><strong>Empresa:</strong> {{ oferta.empresa }}</p>
+                            <p class="card-text"><strong>Fuente:</strong> {{ oferta.fuente }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="card-body">
+                            <p class="card-text"><strong>Ubicación:</strong> {{ oferta.ubicacion }}</p>
+                            <p class="card-text"><strong>Tipo de trabajo:</strong> {{ oferta.tipo_trabajo }}</p>
+                            <p class="card-text"><strong>Salario:</strong> {{ oferta.salario|default:"No especificado" }}</p>
+                        </div>
+                    </div>
+                    <div class="col-md-4 d-flex align-items-center">
+                        <div class="card-body">
+                            <p class="card-text"><strong>Fecha:</strong> {{ oferta.fecha_publicacion }}</p>
+                            <p class="card-text"><strong>Habilidades:</strong>
+                                {% for habilidad in oferta.habilidades.all %}
+                                    {{ habilidad.nombre }}{% if not forloop.last %}, {% endif %}
+                                {% empty %}
+                                    Ninguna
+                                {% endfor %}
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
         {% endfor %}
+
+        <!-- Paginación -->
         <nav aria-label="Paginación">
             <ul class="pagination justify-content-center">
                 {% if ofertas.has_previous %}

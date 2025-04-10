@@ -37,13 +37,22 @@ def scrape_tecnoempleo(titulo='', ubicacion=''):
             descripcion_elem = oferta.select_one('.text-gray-800')
             salario_elem = oferta.select_one('.col-12.col-lg-3.text-gray-700.pt-2.text-right.hidden-md-down')
 
+            # Extraer título y URL
             titulo_oferta = titulo_elem.text.strip() if titulo_elem else "Sin título"
+            href = titulo_elem['href'] if titulo_elem and 'href' in titulo_elem.attrs else ""
+            # Comprobar si el href es relativo o absoluto
+            if href.startswith('http'):
+                url_oferta = href  # Ya es una URL absoluta
+            else:
+                url_oferta = "https://www.tecnoempleo.com" + href  # Añadir prefijo si es relativo
+            
             empresa = empresa_elem.text.strip() if empresa_elem else "Sin empresa"
             ubicacion_oferta = ubicacion_elem.text.strip() if ubicacion_elem else ""
             habilidades = [h.text.strip() for h in habilidades_elems] if habilidades_elems else []
             descripcion = descripcion_elem.text.strip() if descripcion_elem else ""
             salario_raw = salario_elem.text.strip() if salario_elem else ""
             
+            print(f"URL extraída: {url_oferta}")
             print(f"Salario crudo (Tecnoempleo): \"{salario_raw}\"")
             
             # Buscar salario
@@ -76,8 +85,13 @@ def scrape_tecnoempleo(titulo='', ubicacion=''):
                 'tipo_trabajo': tipo_trabajo,
                 'salario': salario,
                 'fecha_publicacion': date.today(),
-                'fuente': 'Tecnoempleo'
+                'fuente': 'Tecnoempleo',
+                'url': url_oferta
             })
+        print(f"Total de ofertas procesadas: {len(ofertas)}")
         return ofertas
+    except Exception as e:
+        print(f"Error en scrape_tecnoempleo: {e}")
+        return []
     finally:
         driver.quit()

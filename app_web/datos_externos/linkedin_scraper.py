@@ -23,6 +23,9 @@ def scrape_linkedin(titulo='', ubicacion=''):
                 job_id = tracking_urn.split(':')[-1]
                 job_details = api.get_job(job_id)
                 
+                # Construir la URL de la oferta
+                url_oferta = f"https://www.linkedin.com/jobs/view/{job_id}"
+                
                 titulo_oferta = job_details.get('title', 'Sin título')
                 company_details = job_details.get('companyDetails', {}).get('com.linkedin.voyager.deco.jobs.web.shared.WebCompactJobPostingCompany', {})
                 empresa = company_details.get('companyResolutionResult', {}).get('name', 'Sin empresa')
@@ -53,13 +56,11 @@ def scrape_linkedin(titulo='', ubicacion=''):
                 # Extraer habilidades y salario
                 habilidades = job_details.get('skills', [])
                 if not habilidades:
-                    palabras_clave = ['Java', 'Spring', 'Node.js', 'Python', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'R', 'Data', 'JavaScript', 'React', 'Angular']
+                    palabras_clave = ['Java', 'Spring', 'Node.js', 'Python','API','REST', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'Azure', 'Android', 'iOS', 'Front-end','Forntend', 'Backend','Git','PMP','informatica', 'ciberseguridad','Zapier', 'ChatGPT','Chat GPT', 'Back-end', 'Swift', 'HTML5', 'Data', 'UX', 'UI','windows','Jira','Selenium', 'cobol','Linux','Software', 'JavaScript', 'React', 'Angular']
                     habilidades = [palabra for palabra in palabras_clave if palabra.lower() in descripcion.lower()]
                 
                 salario_raw = descripcion if ("salario" in descripcion.lower() or "salary" in descripcion.lower() or "€" in descripcion or "k" in descripcion.lower()) else ""
                 salario_raw += " " + titulo_oferta
-                
-                print(f"Salario crudo (LinkedIn): \"{salario_raw}\"")
                 
                 salario = ""
                 if salario_raw:
@@ -67,6 +68,7 @@ def scrape_linkedin(titulo='', ubicacion=''):
                     if matches:
                         salario = next((m for m in matches if '-' in m), matches[-1])
 
+                print(f"URL extraída: {url_oferta}")
                 print(f"Título encontrado: \"{titulo_oferta}\"")
                 print(f"Empresa encontrada: \"{empresa}\"")
                 print(f"Ubicación encontrada: \"{ubicacion_oferta}\"")
@@ -82,7 +84,8 @@ def scrape_linkedin(titulo='', ubicacion=''):
                     'tipo_trabajo': tipo_trabajo,
                     'salario': salario,
                     'fecha_publicacion': timezone.now().date(),
-                    'fuente': 'LinkedIn'
+                    'fuente': 'LinkedIn',
+                    'url': url_oferta  # Añadimos la URL al diccionario
                 })
             else:
                 print(f"No se encontró trackingUrn para el empleo: {empleo}")
