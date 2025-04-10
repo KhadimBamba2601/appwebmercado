@@ -56,7 +56,7 @@ def scrape_linkedin(titulo='', ubicacion=''):
                 # Extraer habilidades y salario
                 habilidades = job_details.get('skills', [])
                 if not habilidades:
-                    palabras_clave = ['Java', 'Spring', 'Node.js', 'Python','API','REST', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'Azure', 'Android', 'iOS', 'Front-end','Forntend', 'Backend','Git','PMP','informatica', 'ciberseguridad','Zapier', 'ChatGPT','Chat GPT', 'Back-end', 'Swift', 'HTML5', 'Data', 'UX', 'UI','windows','Jira','Selenium', 'cobol','Linux','Software', 'JavaScript', 'React', 'Angular']
+                    palabras_clave = ['Java', 'Spring', 'Node.js', 'Python','API', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'Azure', 'Android', 'iOS', 'Front-end','Forntend', 'Backend','Git','PMP','informatica', 'ciberseguridad','Zapier', 'ChatGPT','Chat GPT', 'Back-end', 'Swift', 'HTML5', 'Data', 'windows','Jira','Selenium', 'cobol','Linux','Software', 'JavaScript', 'React', 'Angular']
                     habilidades = [palabra for palabra in palabras_clave if palabra.lower() in descripcion.lower()]
                 
                 salario_raw = descripcion if ("salario" in descripcion.lower() or "salary" in descripcion.lower() or "€" in descripcion or "k" in descripcion.lower()) else ""
@@ -67,14 +67,6 @@ def scrape_linkedin(titulo='', ubicacion=''):
                     matches = SALARIO_PATTERN.findall(salario_raw)
                     if matches:
                         salario = next((m for m in matches if '-' in m), matches[-1])
-
-                print(f"URL extraída: {url_oferta}")
-                print(f"Título encontrado: \"{titulo_oferta}\"")
-                print(f"Empresa encontrada: \"{empresa}\"")
-                print(f"Ubicación encontrada: \"{ubicacion_oferta}\"")
-                print(f"Tipo de trabajo: \"{tipo_trabajo}\"")
-                print(f"Salario encontrado: \"{salario}\"")
-                print(f"Habilidades encontradas: {habilidades}")
 
                 ofertas.append({
                     'titulo': titulo_oferta,

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Crear Usuario</h1>
+<form method="post">
+    {% csrf_token %}
+    <label>Nombre de usuario: <input type="text" name="username" required></label><br>
+    <label>Email: <input type="email" name="email" required></label><br>
+    <label>Contraseña: <input type="password" name="password" required></label><br>
+    <label>Rol: 
+        <select name="rol">
+            {% for rol_value, rol_name in roles %}
+            <option value="{{ rol_value }}">{{ rol_name }}</option>
+            {% endfor %}
+        </select>
+    </label><br>
+    <button type="submit">Crear</button>
+</form>
+<a href="{% url 'usuarios:lista_usuarios' %}">Volver</a>
+{% endblock %}

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Editar Usuario</h1>
+<form method="post">
+    {% csrf_token %}
+    <label>Nombre de usuario: <input type="text" name="username" value="{{ usuario.username }}" required></label><br>
+    <label>Email: <input type="email" name="email" value="{{ usuario.email }}" required></label><br>
+    <label>Contraseña: <input type="password" name="password" placeholder="Dejar en blanco si no cambia"></label><br>
+    <label>Rol: 
+        <select name="rol">
+            {% for rol_value, rol_name in roles %}
+            <option value="{{ rol_value }}" {% if usuario.rol == rol_value %}selected{% endif %}>{{ rol_name }}</option>
+            {% endfor %}
+        </select>
+    </label><br>
+    <button type="submit">Guardar</button>
+</form>
+<a href="{% url 'usuarios:lista_usuarios' %}">Volver</a>
+{% endblock %}

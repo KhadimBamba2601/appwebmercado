@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>Lista de Usuarios</h1>
+<a href="{% url 'usuarios:crear_usuario' %}">Crear nuevo usuario</a>
+<table>
+    <tr>
+        <th>Nombre</th>
+        <th>Email</th>
+        <th>Rol</th>
+        <th>Acciones</th>
+    </tr>
+    {% for usuario in usuarios %}
+    <tr>
+        <td>{{ usuario.username }}</td>
+        <td>{{ usuario.email }}</td>
+        <td>{{ usuario.get_rol_display }}</td>
+        <td>
+            <a href="{% url 'usuarios:editar_usuario' usuario.id %}">Editar</a>
+            <a href="{% url 'usuarios:eliminar_usuario' usuario.id %}">Eliminar</a>
+        </td>
+    </tr>
+    {% empty %}
+    <tr><td colspan="4">No hay usuarios registrados.</td></tr>
+    {% endfor %}
+</table>
+{% endblock %}

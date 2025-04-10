@@ -30,14 +30,11 @@ def scrape_infojobs(titulo='', ubicacion=''):
     
     try:
         driver.get(url)
-        print("Por favor, completa la verificación manual si aparece (30 segundos)...")
         time.sleep(30)  # Tiempo para CAPTCHA o verificación
         
-        # Scroll agresivo con simulaciones humanas
-        print("Haciendo scroll para cargar todas las ofertas...")
         last_height = driver.execute_script("return document.body.scrollHeight")
-        scroll_attempts = 0
-        max_attempts = 15  # Más intentos para asegurar carga completa
+        scroll_attempts = 1
+        max_attempts = 3 
         while scroll_attempts < max_attempts:
             driver.execute_script("window.scrollTo(0, document.body.scrollHeight);")
             time.sleep(random.uniform(2, 4))  # Espera aleatoria para simular humano
@@ -49,16 +46,12 @@ def scrape_infojobs(titulo='', ubicacion=''):
                 print(f"Intento {scroll_attempts}/{max_attempts}: Sin cambios en altura.")
             else:
                 scroll_attempts = 0
-                print(f"Nueva altura detectada: {new_height}")
             last_height = new_height
         
-        # Esperar a que todas las ofertas estén presentes
-        print("Esperando a que las ofertas se carguen completamente...")
-        WebDriverWait(driver, 30).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "sui-AtomCard")))
+        WebDriverWait(driver, 10).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "sui-AtomCard")))
         
         # Extraer todas las ofertas directamente con Selenium
         oferta_elements = driver.find_elements(By.CLASS_NAME, "sui-AtomCard")
-        print(f"Total de '.sui-AtomCard' encontrados: {len(oferta_elements)}")
         
         ofertas = []
         for i, oferta in enumerate(oferta_elements, 1):
@@ -91,7 +84,7 @@ def scrape_infojobs(titulo='', ubicacion=''):
                         salario = next((m for m in matches if '-' in m), matches[0])
 
                 # Extraer habilidades
-                palabras_clave = ['Java', 'Spring', 'Node.js', 'Python', 'API', 'REST', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'Azure', 'Android', 'iOS', 'Front-end', 'Frontend', 'Backend', 'Git', 'PMP', 'informatica', 'ciberseguridad', 'Zapier', 'ChatGPT', 'Chat GPT', 'Back-end', 'Swift', 'HTML5', 'Data', 'UX', 'UI', 'windows', 'Jira', 'Selenium', 'cobol', 'Linux', 'Software', 'JavaScript', 'React', 'Angular']
+                palabras_clave = ['Java', 'Spring', 'Node.js', 'Python', 'API', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'Azure', 'Android', 'iOS', 'Front-end', 'Frontend', 'Backend', 'Git', 'PMP', 'informatica', 'ciberseguridad', 'Zapier', 'ChatGPT', 'Chat GPT', 'Back-end', 'Swift', 'HTML5', 'Data', 'windows', 'Jira', 'Selenium', 'cobol', 'Linux', 'Software', 'JavaScript', 'React', 'Angular']
                 habilidades = [palabra for palabra in palabras_clave if palabra.lower() in descripcion.lower()]
 
                 # Determinar tipo de trabajo
@@ -101,15 +94,6 @@ def scrape_infojobs(titulo='', ubicacion=''):
                     if any(kw in texto_lower for kw in keywords):
                         tipo_trabajo = tipo
                         break
-
-                print(f"Oferta {i}:")
-                print(f"  Título: {titulo_oferta}")
-                print(f"  URL: {url_oferta}")
-                print(f"  Empresa: {empresa}")
-                print(f"  Ubicación: {ubicacion_oferta}")
-                print(f"  Salario: {salario}")
-                print(f"  Habilidades: {habilidades}")
-                print(f"  Tipo de trabajo: {tipo_trabajo}")
 
                 ofertas.append({
                     'titulo': titulo_oferta,

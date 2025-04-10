@@ -51,10 +51,7 @@ def scrape_tecnoempleo(titulo='', ubicacion=''):
             habilidades = [h.text.strip() for h in habilidades_elems] if habilidades_elems else []
             descripcion = descripcion_elem.text.strip() if descripcion_elem else ""
             salario_raw = salario_elem.text.strip() if salario_elem else ""
-            
-            print(f"URL extraída: {url_oferta}")
-            print(f"Salario crudo (Tecnoempleo): \"{salario_raw}\"")
-            
+
             # Buscar salario
             salario = ""
             texto_completo = salario_raw + " " + descripcion
@@ -69,13 +66,6 @@ def scrape_tecnoempleo(titulo='', ubicacion=''):
                 if any(kw in texto_lower for kw in keywords):
                     tipo_trabajo = tipo
                     break
-
-            print(f"Título encontrado: \"{titulo_oferta}\"")
-            print(f"Empresa encontrada: \"{empresa}\"")
-            print(f"Ubicación encontrada: \"{ubicacion_oferta}\"")
-            print(f"Tipo de trabajo: \"{tipo_trabajo}\"")
-            print(f"Salario encontrado: \"{salario}\"")
-            print(f"Habilidades encontradas: {habilidades}")
 
             ofertas.append({
                 'titulo': titulo_oferta,
