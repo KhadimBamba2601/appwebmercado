@@ -1,18 +1,32 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<h2>Proyectos</h2>
-{% if proyectos %}
-<ul>
-    {% for proyecto in proyectos %}
-    <li>
-        <a href="{% url 'proyectos:detalle_proyecto' proyecto.id %}">{{ proyecto.nombre }}</a>
-        <a href="{% url 'proyectos:editar_proyecto' proyecto.id %}" class="btn btn-sm btn-primary">Editar</a>
-        <a href="{% url 'proyectos:eliminar_proyecto' proyecto.id %}" class="btn btn-sm btn-danger">Eliminar</a>
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>No hay proyectos disponibles.</p>
-{% endif %}
-<a href="{% url 'proyectos:crear_proyecto' %}" class="btn btn-primary">Crear Proyecto</a>
+<div class="container mt-4">
+    <h1>Lista de Proyectos</h1>
+    {% if mensaje %}
+        <div class="alert alert-info">
+            {{ mensaje }}
+        </div>
+    {% else %}
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Gestor</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for proyecto in proyectos %}
+                    <tr>
+                        <td>{{ proyecto.nombre }}</td>
+                        <td>{{ proyecto.gestor.username }}</td>
+                        <td>{{ proyecto.get_estado_display }}</td>
+                        <td><a href="{% url 'proyectos:detalle_proyecto' proyecto.id %}" class="btn btn-info">Ver Detalles</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</div>
 {% endblock %}

@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Acceso Denegado</h1>
+    <p>Lo sentimos, no tienes permiso para acceder a esta página o realizar esta acción.</p>
+    <p>{{ mensaje }}</p>
+    <a href="{% url 'proyectos:lista_proyectos' %}" class="btn btn-secondary">Volver a la lista de proyectos</a>
+</div>
+{% endblock %}

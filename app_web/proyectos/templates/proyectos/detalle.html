@@ -1,31 +1,46 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% block content %}
-<h2>{{ proyecto.nombre }}</h2>
-<p>{{ proyecto.descripcion }}</p>
-<p><strong>Fecha de inicio:</strong> {{ proyecto.fecha_inicio }}</p>
-{% if proyecto.fecha_fin %}
-<p><strong>Fecha de fin:</strong> {{ proyecto.fecha_fin }}</p>
-{% endif %}
-<p><strong>Gestor:</strong> {{ proyecto.gestor.username }}</p>
-
-<h3>Tareas</h3>
-{% if tareas %}
-<ul>
-    {% for tarea in tareas %}
-    <li>
-        {{ tarea.titulo }} - {{ tarea.estado }}
-        <a href="{% url 'editar_tarea' tarea.id %}" class="btn btn-sm btn-primary">Editar</a>
-        <a href="{% url 'eliminar_tarea' tarea.id %}" class="btn btn-sm btn-danger">Eliminar</a>
-        {% if tarea.estado != 'completada' %}
-        <a href="{% url 'completar_tarea' tarea.id %}" class="btn btn-sm btn-success">Completar</a>
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
-{% else %}
-<p>No hay tareas para este proyecto.</p>
-{% endif %}
-
-<a href="{% url 'crear_tarea' proyecto.id %}" class="btn btn-primary">Agregar Tarea</a>
-<a href="{% url 'lista_proyectos' %}" class="btn btn-secondary">Volver a Proyectos</a>
+<div class="container mt-4">
+    <h1>{{ proyecto.nombre }}</h1>
+    <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
+    <p><strong>Gestor:</strong> {{ proyecto.gestor.username }}</p>
+    <p><strong>Estado:</strong> {{ proyecto.get_estado_display }}</p>
+    {% if user.groups.all|length > 0 and 'Gestor de Proyectos' in user.groups.all|map:'name' or user.is_superuser %}
+        <a href="{% url 'proyectos:crear_tarea' proyecto.id %}" class="btn btn-primary mb-3">Añadir Tarea</a>
+        <a href="{% url 'proyectos:editar_proyecto' proyecto.id %}" class="btn btn-warning mb-3">Editar Proyecto</a>
+        <a href="{% url 'proyectos:eliminar_proyecto' proyecto.id %}" class="btn btn-danger mb-3">Eliminar Proyecto</a>
+    {% endif %}
+    <h2>Tareas</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Fecha Límite</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tarea in tareas %}
+                <tr>
+                    <td>{{ tarea.titulo }}</td>
+                    <td>{{ tarea.get_estado_display }}</td>
+                    <td>{{ tarea.get_prioridad_display }}</td>
+                    <td>{{ tarea.fecha_limite|default:"Sin definir" }}</td>
+                    <td>
+                        <a href="{% url 'proyectos:editar_tarea' tarea.id %}" class="btn btn-warning">Editar</a>
+                        {% if user in tarea.colaboradores.all or user.groups.all|length > 0 and 'Gestor de Proyectos' in user.groups.all|map:'name' or user.is_superuser %}
+                            <a href="{% url 'proyectos:completar_tarea' tarea.id %}" class="btn btn-success">Completar</a>
+                        {% endif %}
+                        {% if user.groups.all|length > 0 and 'Gestor de Proyectos' in user.groups.all|map:'name' or user.is_superuser %}
+                            <a href="{% url 'proyectos:eliminar_tarea' tarea.id %}" class="btn btn-danger">Eliminar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'proyectos:lista_proyectos' %}" class="btn btn-secondary">Volver</a>
+</div>
 {% endblock %}

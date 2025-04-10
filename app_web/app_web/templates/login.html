@@ -1,15 +1,15 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <h1>{{ titulo }} en {{ proyecto.nombre }}</h1>
+    <h2>Iniciar Sesión</h2>
     <form method="POST">
         {% csrf_token %}
         {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Guardar</button>
+        <button type="submit" class="btn btn-primary">Entrar</button>
     </form>
     {% if messages %}
         {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-info{% endif %}">
                 {{ message }}
             </div>
         {% endfor %}

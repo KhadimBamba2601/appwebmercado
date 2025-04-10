@@ -13,7 +13,7 @@ class OfertaEmpleo(models.Model):
     ubicacion = models.CharField(max_length=200)
     tipo_trabajo = models.CharField(max_length=50)
     salario = models.CharField(max_length=100, blank=True, null=True)
-    fuente = models.CharField(max_length=100)
+    fuente = models.CharField(max_length=100) # Fuente de la oferta (ej. InfoJobs, Tecnoempleo o LinkedIN)
     fecha_publicacion = models.DateField()
     habilidades = models.ManyToManyField(Habilidad, blank=True)
     url = models.URLField(max_length=500, blank=True, null=True)  # Campo para la URL

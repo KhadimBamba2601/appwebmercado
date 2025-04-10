@@ -5,7 +5,7 @@ from .utils import SALARIO_PATTERN, TIPO_TRABAJO_KEYWORDS
 
 def scrape_linkedin(titulo='', ubicacion=''):
     try:
-        api = Linkedin("correo@gmail.com", "12344321")  # Reemplaza con tus credenciales
+        api = Linkedin("trabajoempresakn@gmail.com", "1stanc321")  # Reemplaza con tus credenciales
         
         params = {}
         if titulo:

@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Estadísticas del Mercado Laboral</h1>
+    {% if user.groups.all.0.name == 'Administrador' %}
+        <h3>Total de Ofertas: {{ total_ofertas }}</h3>
+        
+        <h4>Ofertas por Fuente</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Fuente</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for fuente in ofertas_por_fuente %}
+                    <tr>
+                        <td>{{ fuente.fuente }}</td>
+                        <td>{{ fuente.total }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <h4>Habilidades Más Demandadas</h4>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Habilidad</th>
+                    <th>Número de Ofertas</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for habilidad in habilidades_demandadas %}
+                    <tr>
+                        <td>{{ habilidad.nombre }}</td>
+                        <td>{{ habilidad.num_ofertas }}</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No tienes permiso para ver esta página.</p>
+    {% endif %}
+    <a href="{% url 'ofertas_empleo' %}" class="btn btn-secondary">Volver</a>
+</div>
+{% endblock %}
