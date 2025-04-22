@@ -1,36 +1,65 @@
-# Archivo: motor_ia/predictions.py
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.linear_model import LogisticRegression
+# motor_ia/predicciones.py
 from analisis_mercado.models import OfertaEmpleo, Habilidad
-import pandas as pd
+from django.db.models import Count
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.cluster import KMeans
+import numpy as np
 
-def predict_trending_skills():
+def predecir_habilidades_tendencia():
     """
-    Predice habilidades demandadas basado prospecto.
+    Predice habilidades en tendencia basadas en todas las ofertas de empleo,
+    sin depender de fechas, usando un análisis de frecuencia y clustering.
     """
-    # Obtener datos históricos
-    ofertas = OfertaEmpleo.objects.all()
-    data = [(oferta.descripcion, [h.nombre for h in oferta.habilidades.all()]) for oferta in ofertas]
-    
-    # Preparar datos
-    descriptions = [d[0] for d in data]
-    skills = [d[1] for d in data]
-    
-    # Vectorizar descripciones
-    vectorizer = TfidfVectorizer(max_features=1000)
-    X = vectorizer.fit_transform(descriptions)
-    
-    # Entrenar un modelo por habilidad (ejemplo simplificado)
-    trending_skills = []
-    for skill in Habilidad.objects.all():
-        y = [1 if skill.nombre in oferta_skills else 0 for oferta_skills in skills]
-        if sum(y) < 5:  # Ignorar habilidades con pocos datos
-            continue
-        model = LogisticRegression()
-        model.fit(X, y)
-        score = model.score(X, y)  # Usar métrica más robusta en producción
-        trending_skills.append({'skill': skill.nombre, 'score': score})
-    
-    # Ordenar por probabilidad
-    trending_skills.sort(key=lambda x: x['score'], reverse=True)
-    return trending_skills[:5]  # Top 5 habilidades
+    try:
+        # Obtener todas las ofertas con sus habilidades
+        ofertas = OfertaEmpleo.objects.prefetch_related('habilidades').all()
+        if not ofertas.exists():
+            return {'error': 'No hay ofertas de empleo disponibles para analizar.'}
+
+        # Crear una lista de "documentos" donde cada documento es la lista de habilidades de una oferta
+        documentos = []
+        for oferta in ofertas:
+            habilidades = [h.nombre for h in oferta.habilidades.all()]
+            documentos.append(' '.join(habilidades))
+
+        if not documentos:
+            return {'error': 'No hay habilidades asociadas a las ofertas.'}
+
+        # Vectorizar habilidades usando TF-IDF
+        vectorizer = TfidfVectorizer()
+        X = vectorizer.fit_transform(documentos)
+        feature_names = vectorizer.get_feature_names_out()
+
+        # Aplicar clustering con K-Means para identificar grupos de habilidades
+        num_clusters = min(5, len(documentos))  # Limitar clusters
+        kmeans = KMeans(n_clusters=num_clusters, random_state=42)
+        kmeans.fit(X)
+
+        # Calcular relevancia de habilidades por cluster
+        habilidades_relevancia = []
+        for cluster_id in range(num_clusters):
+            cluster_indices = np.where(kmeans.labels_ == cluster_id)[0]
+            if len(cluster_indices) == 0:
+                continue
+
+            # Sumar los puntajes TF-IDF de las habilidades en el cluster
+            cluster_scores = np.sum(X[cluster_indices].toarray(), axis=0)
+            for idx, score in enumerate(cluster_scores):
+                if score > 0:
+                    habilidad = feature_names[idx]
+                    habilidades_relevancia.append({
+                        'habilidad': habilidad,
+                        'num_ofertas': len(cluster_indices),  # Ofertas en el cluster
+                        'relevancia': float(score / len(cluster_indices))  # Puntaje promedio
+                    })
+
+        # Ordenar por relevancia y limitar a las top 5
+        habilidades_relevancia = sorted(habilidades_relevancia, key=lambda x: x['relevancia'], reverse=True)[:5]
+
+        if not habilidades_relevancia:
+            return {'error': 'No se encontraron habilidades relevantes.'}
+
+        return habilidades_relevancia
+
+    except Exception as e:
+        return {'error': f'Error al predecir habilidades: {str(e)}'}

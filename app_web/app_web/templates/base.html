@@ -1,62 +1,208 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Gestión de Tareas y Mercado{% endblock %}</title>
-    <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <style>
+        /* Botón flotante */
+        .chat-button {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 1000;
+            width: 60px;
+            height: 60px;
+            background-color: #007bff;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            cursor: pointer;
+            transition: transform 0.2s, background-color 0.2s;
+        }
+        .chat-button:hover {
+            background-color: #0056b3;
+            transform: scale(1.1);
+        }
+        .chat-button img {
+            width: 30px;
+            height: 30px;
+        }
+        /* Overlay transparente */
+        .chat-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+        }
+        /* Modal del chat */
+        .chat-modal {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 350px;
+            max-height: 500px;
+            background-color: #ffffff;
+            border-radius: 15px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
+            z-index: 2001;
+            display: none;
+            flex-direction: column;
+            overflow: hidden;
+            animation: slideIn 0.3s ease-out;
+        }
+        .chat-modal.show {
+            display: flex;
+        }
+        .chat-header {
+            background-color: #007bff;
+            color: white;
+            padding: 10px 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border-radius: 15px 15px 0 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .chat-body {
+            flex-grow: 1;
+            padding: 15px;
+            overflow-y: auto;
+            background-color: #f8f9fa;
+        }
+        .chat-message {
+            margin-bottom: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            max-width: 80%;
+            word-wrap: break-word;
+        }
+        .user-message {
+            background-color: #007bff;
+            color: white;
+            margin-left: auto;
+            border-bottom-right-radius: 2px;
+        }
+        .bot-message {
+            background-color: #e9ecef;
+            color: black;
+            margin-right: auto;
+            border-bottom-left-radius: 2px;
+        }
+        .chat-footer {
+            padding: 10px;
+            background-color: #ffffff;
+            border-top: 1px solid #ddd;
+        }
+        .chat-footer form {
+            display: flex;
+            align-items: center;
+        }
+        .chat-footer input {
+            flex-grow: 1;
+            border: none;
+            padding: 8px;
+            border-radius: 20px;
+            background-color: #f1f3f5;
+            margin-right: 10px;
+        }
+        .chat-footer button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 8px 15px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+        .chat-footer button:hover {
+            background-color: #0056b3;
+        }
+        /* Animación */
+        @keyframes slideIn {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+        /* Responsive */
+        @media (max-width: 576px) {
+            .chat-modal {
+                width: 90%;
+                right: 5%;
+            }
+        }
+    </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container">
-            <a class="navbar-brand" href="{% url 'index' %}">Gestión de Tareas y Mercado</a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-                <span class="navbar-toggler-icon"></span>
-            </button>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'proyectos:lista_proyectos' %}">Proyectos</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'ofertas_empleo' %}">Ofertas de Empleo</a>
-                    </li>
-                </ul>
-                <ul class="navbar-nav ms-auto">
-                    {% if user.is_authenticated %}
-                        <li class="nav-item">
-                            <form method="post" action="{% url 'logout' %}" style="display:inline;">
-                                {% csrf_token %}
-                                <button type="submit">Cerrar sesión</button>
-                            </form>
-                        </li>
-                    {% else %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'login' %}">Iniciar Sesión</a>
-                        </li>
-                    {% endif %}
-                </ul>
-            </div>
-        </div>
-    </nav>
+    <!-- Contenido de la página -->
+    {% block content %}
+    {% endblock %}
 
-    <div class="container mt-4">
-        {% if messages %}
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }}">
-                    {{ message }}
-                </div>
-            {% endfor %}
-        {% endif %}
-
-        {% block content %}
-        {% endblock %}
+    <!-- Botón flotante -->
+    <div class="chat-button" onclick="toggleChat()">
+        <img src="{% static 'images/chat-icon.png' %}" alt="Chat" />
     </div>
 
-    <!-- Bootstrap JS y Popper.js -->
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
+    <!-- Overlay transparente -->
+    <div class="chat-overlay" id="chatOverlay" onclick="toggleChat()"></div>
+
+    <!-- Modal del chat -->
+    <div class="chat-modal" id="chatModal">
+        <div class="chat-header">
+            <span>Chat Inteligente</span>
+            <button type="button" onclick="toggleChat()" style="background: none; border: none; color: white; font-size: 20px;">&times;</button>
+        </div>
+        <div class="chat-body" id="chatBody">
+            {% if chat_history %}
+                {% for message in chat_history %}
+                    <div class="chat-message user-message">{{ message.user }}</div>
+                    <div class="chat-message bot-message">{{ message.bot }}</div>
+                {% endfor %}
+            {% else %}
+                <div class="chat-message bot-message">¡Hola! Puedo ayudarte a crear proyectos, tareas, consultar estadísticas o recomendar habilidades. Prueba con: "Crear proyecto X" o "Mostrar habilidades".</div>
+            {% endif %}
+        </div>
+        <div class="chat-footer">
+            <form method="post" action="{% url 'chat' %}">
+                {% csrf_token %}
+                <input type="text" name="mensaje" placeholder="Escribe tu mensaje..." required>
+                <button type="submit">Enviar</button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleChat() {
+            const chatModal = document.getElementById('chatModal');
+            const chatOverlay = document.getElementById('chatOverlay');
+            chatModal.classList.toggle('show');
+            chatOverlay.style.display = chatModal.classList.contains('show') ? 'block' : 'none';
+            if (chatModal.classList.contains('show')) {
+                const chatBody = document.getElementById('chatBody');
+                chatBody.scrollTop = chatBody.scrollHeight;
+            }
+        }
+
+        // Auto-scroll al cargar nuevos mensajes
+        document.addEventListener('DOMContentLoaded', () => {
+            const chatBody = document.getElementById('chatBody');
+            chatBody.scrollTop = chatBody.scrollHeight;
+        });
+    </script>
 </body>
-</html> 
+</html>

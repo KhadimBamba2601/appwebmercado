@@ -17,28 +17,28 @@ PROYECTOS_PREDEFINIDOS = {
         'nombre': 'Búsqueda de Ofertas Personalizadas',
         'descripcion': 'Proyecto para buscar y aplicar a ofertas de empleo personalizadas.',
         'tareas': [
-            {'titulo': 'Configurar filtros de búsqueda', 'descripcion': 'Establecer habilidades, ubicación y salario deseado.', 'prioridad': 3, 'estado': 'pendiente'},
-            {'titulo': 'Apuntarse a ofertas', 'descripcion': 'Seleccionar y aplicar a ofertas en plataformas como InfoJobs, Tecnoempleo y LinkedIn.', 'prioridad': 2, 'estado': 'pendiente'},
-            {'titulo': 'Enviar currículum personalizado', 'descripcion': 'Adaptar y enviar currículum para cada oferta.', 'prioridad': 3, 'estado': 'pendiente'},
-            {'titulo': 'Seguimiento de respuestas', 'descripcion': 'Monitorear y registrar respuestas de las empresas.', 'prioridad': 1, 'estado': 'pendiente'},
+            {'titulo': 'Configurar filtros de búsqueda', 'descripcion': 'Establecer habilidades, ubicación y salario deseado.', 'prioridad': 'Baja', 'estado': 'pendiente'},
+            {'titulo': 'Apuntarse a ofertas', 'descripcion': 'Seleccionar y aplicar a ofertas en plataformas como InfoJobs, Tecnoempleo y LinkedIn.', 'prioridad': 'Alta', 'estado': 'pendiente'},
+            {'titulo': 'Enviar currículum personalizado', 'descripcion': 'Adaptar y enviar currículum para cada oferta.', 'prioridad': 'Media', 'estado': 'pendiente'},
+            {'titulo': 'Seguimiento de respuestas', 'descripcion': 'Monitorear y registrar respuestas de las empresas.', 'prioridad': 'Alta', 'estado': 'pendiente'},
         ]
     },
     'optimizacion_perfil': {
         'nombre': 'Optimización de Perfil Laboral',
         'descripcion': 'Mejorar el perfil profesional para aumentar las oportunidades de empleo.',
         'tareas': [
-            {'titulo': 'Actualizar currículum', 'descripcion': 'Incorporar habilidades demandadas y experiencia reciente.', 'prioridad': 3, 'estado': 'pendiente'},
-            {'titulo': 'Optimizar perfil de LinkedIn', 'descripcion': 'Mejorar la visibilidad y el contenido del perfil.', 'prioridad': 2, 'estado': 'pendiente'},
-            {'titulo': 'Solicitar recomendaciones', 'descripcion': 'Pedir recomendaciones a colegas y supervisores.', 'prioridad': 1, 'estado': 'pendiente'},
+            {'titulo': 'Actualizar currículum', 'descripcion': 'Incorporar habilidades demandadas y experiencia reciente.', 'prioridad': 'Alta', 'estado': 'pendiente'},
+            {'titulo': 'Optimizar perfil de LinkedIn', 'descripcion': 'Mejorar la visibilidad y el contenido del perfil.', 'prioridad': 'Media', 'estado': 'pendiente'},
+            {'titulo': 'Solicitar recomendaciones', 'descripcion': 'Pedir recomendaciones a colegas y supervisores.', 'prioridad': 'Baja', 'estado': 'pendiente'},
         ]
     },
     'preparacion_entrevistas': {
         'nombre': 'Preparación para Entrevistas',
         'descripcion': 'Prepararse para entrevistas de trabajo de manera efectiva.',
         'tareas': [
-            {'titulo': 'Investigar la empresa', 'descripcion': 'Conocer la cultura, valores y noticias recientes de la empresa.', 'prioridad': 3, 'estado': 'pendiente'},
-            {'titulo': 'Practicar respuestas a preguntas comunes', 'descripcion': 'Preparar respuestas para preguntas frecuentes en entrevistas.', 'prioridad': 2, 'ород': 'pendiente'},
-            {'titulo': 'Preparar preguntas para el entrevistador', 'descripcion': 'Formular preguntas relevantes para hacer al final de la entrevista.', 'prioridad': 1, 'estado': 'pendiente'},
+            {'titulo': 'Investigar la empresa', 'descripcion': 'Conocer la cultura, valores y noticias recientes de la empresa.', 'prioridad': 'Alta', 'estado': 'pendiente'},
+            {'titulo': 'Practicar respuestas a preguntas comunes', 'descripcion': 'Preparar respuestas para preguntas frecuentes en entrevistas.', 'prioridad': 'Media', 'ород': 'pendiente'},
+            {'titulo': 'Preparar preguntas para el entrevistador', 'descripcion': 'Formular preguntas relevantes para hacer al final de la entrevista.', 'prioridad': 'Baja', 'estado': 'pendiente'},
         ]
     },
 }

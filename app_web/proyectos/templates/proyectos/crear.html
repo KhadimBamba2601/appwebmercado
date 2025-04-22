@@ -36,11 +36,12 @@
             <input type="date" class="form-control" id="fecha_fin" name="fecha_fin">
         </div>
         <div class="mb-3">
-            <label for="estado" class="form-label">Estado</label>
-            <select class="form-control" id="estado" name="estado" required>
-                {% for value, display in Proyecto.ESTADO_CHOICES %}
-                    <option value="{{ value }}">{{ display }}</option>
-                {% endfor %}
+            <label for="estado" class="form-label">Estado del Proyecto:</label>
+            <select class="form-select" id="estado" name="estado" required>
+                <option value="" selected>Seleccionar Estado</option>
+                <option value="pendiente">Pendiente</option>
+                <option value="en_progreso">En Progreso</option>
+                <option value="completada">Completada</option>
             </select>
         </div>
         <div class="mb-3">

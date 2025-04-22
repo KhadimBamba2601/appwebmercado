@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block content %}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Habilidades en Tendencia</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1>Habilidades en Tendencia</h1>
+        
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+        {% elif habilidades_tendencia %}
+            <p>Estas son las habilidades más demandadas en el mercado laboral en los últimos 30 días:</p>
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Habilidad</th>
+                        <th>Puntaje</th>
+                        <th>Confianza</th>
+                        <th>Número de Ofertas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for habilidad in habilidades_tendencia %}
+                        <tr>
+                            <td>{{ habilidad.habilidad }}</td>
+                            <td>{{ habilidad.puntaje|floatformat:3 }}</td>
+                            <td>{{ habilidad.confianza|floatformat:2 }}</td>
+                            <td>{{ habilidad.num_ofertas }}</td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% else %}
+            <p>No hay datos suficientes para predecir habilidades en tendencia.</p>
+        {% endif %}
+        
+        <a href="{% url 'index' %}" class="btn btn-primary">Volver al Inicio</a>
+    </div>
+</body>
+</html>
+{% endblock %}
