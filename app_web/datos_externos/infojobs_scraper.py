@@ -84,7 +84,7 @@ def scrape_infojobs(titulo='', ubicacion=''):
                         salario = next((m for m in matches if '-' in m), matches[0])
 
                 # Extraer habilidades
-                palabras_clave = ['Java', 'Spring', 'Node.js', 'Python', 'API', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'Azure', 'Android', 'iOS', 'Front-end', 'Frontend', 'Backend', 'Git', 'PMP', 'informatica', 'ciberseguridad', 'Zapier', 'ChatGPT', 'Chat GPT', 'Back-end', 'Swift', 'HTML5', 'Data', 'windows', 'Jira', 'Selenium', 'cobol', 'Linux', 'Software', 'JavaScript', 'React', 'Angular']
+                palabras_clave = ['Java', 'Spring', 'Node.js', 'Python', 'API', 'SQL', 'TypeScript', '.NET', 'C#', 'PHP', 'C++', 'Azure', 'Android', 'Apple', 'Front-end', 'Frontend', 'Backend', 'Git', 'PMP', 'informatica', 'ciberseguridad', 'Zapier', 'ChatGPT', 'Chat GPT', 'Back-end', 'Swift', 'HTML5', 'Data', 'windows', 'Jira', 'Selenium', 'cobol', 'Linux', 'Software', 'JavaScript', 'React', 'Angular']
                 habilidades = [palabra for palabra in palabras_clave if palabra.lower() in descripcion.lower()]
 
                 # Determinar tipo de trabajo

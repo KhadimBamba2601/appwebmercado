@@ -2,6 +2,9 @@
 {% block content %}
 <div class="container mt-4">
     <h1>Lista de Proyectos</h1>
+    {% if user.is_authenticated and user.rol == 'admin' or user.rol == 'gestor' %}
+        <a href="{% url 'proyectos:crear_proyecto' %}" class="btn btn-primary mb-3">Crear Proyecto</a>
+    {% endif %}
     {% if mensaje %}
         <div class="alert alert-info">
             {{ mensaje }}

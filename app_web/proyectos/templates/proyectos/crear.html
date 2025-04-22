@@ -1,18 +1,59 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <h1>{{ titulo }}</h1>
-    <form method="POST">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Guardar</button>
-    </form>
+    <h1>Crear Proyecto</h1>
     {% if messages %}
         {% for message in messages %}
-            <div class="alert {% if message.tags == 'error' %}alert-danger{% else %}alert-success{% endif %}">
+            <div class="alert {% if message.tags %}alert-{{ message.tags }}{% endif %}">
                 {{ message }}
             </div>
         {% endfor %}
     {% endif %}
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" id="nombre" name="nombre" required>
+        </div>
+        <div class="mb-3">
+            <label for="descripcion" class="form-label">Descripción</label>
+            <textarea class="form-control" id="descripcion" name="descripcion" rows="4"></textarea>
+        </div>
+        <div class="mb-3">
+            <label for="gestor" class="form-label">Gestor</label>
+            <select class="form-control" id="gestor" name="gestor" required>
+                {% for gestor in gestores %}
+                    <option value="{{ gestor.id }}">{{ gestor.username }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="fecha_inicio" class="form-label">Fecha de Inicio</label>
+            <input type="date" class="form-control" id="fecha_inicio" name="fecha_inicio" required>
+        </div>
+        <div class="mb-3">
+            <label for="fecha_fin" class="form-label">Fecha de Fin</label>
+            <input type="date" class="form-control" id="fecha_fin" name="fecha_fin">
+        </div>
+        <div class="mb-3">
+            <label for="estado" class="form-label">Estado</label>
+            <select class="form-control" id="estado" name="estado" required>
+                {% for value, display in Proyecto.ESTADO_CHOICES %}
+                    <option value="{{ value }}">{{ display }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="mb-3">
+            <label for="predefinido" class="form-label">Seleccionar Proyecto Predefinido (opcional)</label>
+            <select class="form-control" id="predefinido" name="predefinido">
+                <option value="">-- Ninguno --</option>
+                {% for predef in predefinidos %}
+                    <option value="{{ predef.clave }}">{{ predef.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Crear</button>
+        <a href="{% url 'proyectos:lista_proyectos' %}" class="btn btn-secondary">Cancelar</a>
+    </form>
 </div>
 {% endblock %}

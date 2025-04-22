@@ -2,6 +2,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from analisis_mercado.models import OfertaEmpleo, Habilidad
+from proyectos.models import Proyecto, Tarea
 from django.core.paginator import Paginator
 from django.contrib import messages
 from datos_externos.infojobs_scraper import scrape_infojobs
@@ -114,3 +115,27 @@ def estadisticas(request):
         'habilidades_demandadas': habilidades_demandadas,
     }
     return render(request, 'estadisticas.html', context)
+
+@login_required(login_url='/cuentas/login/')
+def panel_de_control(request):
+    # Estadísticas de proyectos
+    proyectos_total = Proyecto.objects.count()
+    proyectos_por_estado = Proyecto.objects.values('estado').annotate(total=Count('id'))
+    
+    # Estadísticas de tareas
+    tareas_total = Tarea.objects.count()
+    tareas_por_prioridad = Tarea.objects.values('prioridad').annotate(total=Count('id'))
+    
+    # Estadísticas de mercado laboral
+    ofertas_total = OfertaEmpleo.objects.count()
+    habilidades_demandadas = Habilidad.objects.annotate(num_ofertas=Count('ofertaempleo')).order_by('-num_ofertas')[:5]
+    
+    context = {
+        'proyectos_total': proyectos_total,
+        'proyectos_por_estado': proyectos_por_estado,
+        'tareas_total': tareas_total,
+        'tareas_por_prioridad': tareas_por_prioridad,
+        'ofertas_total': ofertas_total,
+        'habilidades_demandadas': habilidades_demandadas,
+    }
+    return render(request, 'panel_de_control.html', context)

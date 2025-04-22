@@ -11,7 +11,8 @@ urlpatterns = [
     path('proyectos/', include(('proyectos.urls', 'proyectos'), namespace='proyectos')),
     path('datos/', include(('datos_externos.urls', 'datos_externos'), namespace='datos_externos')),
     path('ofertas/', ofertas_empleo, name='ofertas_empleo'),
-    path('estadisticas/', estadisticas, name='estadisticas'),  # Nueva vista para estadísticas
-    path('login/', LoginView.as_view(template_name='login.html'), name='login'),
+    path('estadisticas/', estadisticas, name='estadisticas'), 
+    path('usuarios/login/', LoginView.as_view(template_name='login.html'), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
+    
 ]

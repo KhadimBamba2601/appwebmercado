@@ -1,12 +1,48 @@
 # proyectos/views.py
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
-from usuarios.decorators import rol_requerido  # Asumo que este decorador verifica roles
 from django.contrib import messages
 from .models import Proyecto, Tarea
 from django import forms
 from analisis_mercado.models import Habilidad
+from django.contrib import messages
+from .models import Proyecto, Tarea
 from usuarios.models import Usuario
+from usuarios.decorators import rol_requerido
+from django.utils import timezone
+
+# Lista de proyectos predefinidos
+PROYECTOS_PREDEFINIDOS = {
+    'busqueda_ofertas': {
+        'nombre': 'Búsqueda de Ofertas Personalizadas',
+        'descripcion': 'Proyecto para buscar y aplicar a ofertas de empleo personalizadas.',
+        'tareas': [
+            {'titulo': 'Configurar filtros de búsqueda', 'descripcion': 'Establecer habilidades, ubicación y salario deseado.', 'prioridad': 3, 'estado': 'pendiente'},
+            {'titulo': 'Apuntarse a ofertas', 'descripcion': 'Seleccionar y aplicar a ofertas en plataformas como InfoJobs, Tecnoempleo y LinkedIn.', 'prioridad': 2, 'estado': 'pendiente'},
+            {'titulo': 'Enviar currículum personalizado', 'descripcion': 'Adaptar y enviar currículum para cada oferta.', 'prioridad': 3, 'estado': 'pendiente'},
+            {'titulo': 'Seguimiento de respuestas', 'descripcion': 'Monitorear y registrar respuestas de las empresas.', 'prioridad': 1, 'estado': 'pendiente'},
+        ]
+    },
+    'optimizacion_perfil': {
+        'nombre': 'Optimización de Perfil Laboral',
+        'descripcion': 'Mejorar el perfil profesional para aumentar las oportunidades de empleo.',
+        'tareas': [
+            {'titulo': 'Actualizar currículum', 'descripcion': 'Incorporar habilidades demandadas y experiencia reciente.', 'prioridad': 3, 'estado': 'pendiente'},
+            {'titulo': 'Optimizar perfil de LinkedIn', 'descripcion': 'Mejorar la visibilidad y el contenido del perfil.', 'prioridad': 2, 'estado': 'pendiente'},
+            {'titulo': 'Solicitar recomendaciones', 'descripcion': 'Pedir recomendaciones a colegas y supervisores.', 'prioridad': 1, 'estado': 'pendiente'},
+        ]
+    },
+    'preparacion_entrevistas': {
+        'nombre': 'Preparación para Entrevistas',
+        'descripcion': 'Prepararse para entrevistas de trabajo de manera efectiva.',
+        'tareas': [
+            {'titulo': 'Investigar la empresa', 'descripcion': 'Conocer la cultura, valores y noticias recientes de la empresa.', 'prioridad': 3, 'estado': 'pendiente'},
+            {'titulo': 'Practicar respuestas a preguntas comunes', 'descripcion': 'Preparar respuestas para preguntas frecuentes en entrevistas.', 'prioridad': 2, 'ород': 'pendiente'},
+            {'titulo': 'Preparar preguntas para el entrevistador', 'descripcion': 'Formular preguntas relevantes para hacer al final de la entrevista.', 'prioridad': 1, 'estado': 'pendiente'},
+        ]
+    },
+}
+
 
 # Formularios con etiquetas en español
 class ProyectoForm(forms.ModelForm):
@@ -44,6 +80,7 @@ class TareaForm(forms.ModelForm):
         }
 
 @login_required(login_url='/cuentas/login/')
+@rol_requerido('gestor', 'admin')
 def lista_proyectos(request):
     proyectos = Proyecto.objects.all()
     # Filtrar proyectos visibles según rol
@@ -56,18 +93,51 @@ def lista_proyectos(request):
 @rol_requerido('gestor', 'admin')
 def crear_proyecto(request):
     if request.method == 'POST':
-        form = ProyectoForm(request.POST)
-        if form.is_valid():
-            proyecto = form.save(commit=False)
-            proyecto.gestor = request.user
+        nombre = request.POST.get('nombre')
+        descripcion = request.POST.get('descripcion')
+        gestor_id = request.POST.get('gestor')
+        fecha_inicio = request.POST.get('fecha_inicio')
+        fecha_fin = request.POST.get('fecha_fin')
+        estado = request.POST.get('estado')
+        predefinido = request.POST.get('predefinido')
+
+        try:
+            gestor = Usuario.objects.get(id=gestor_id)
+            proyecto = Proyecto(
+                nombre=nombre,
+                descripcion=descripcion,
+                gestor=gestor,
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin,
+                estado=estado
+            )
             proyecto.save()
-            messages.success(request, f"El proyecto '{proyecto.nombre}' ha sido creado con éxito.")
+
+            # Si se eligió un proyecto predefinido, crear las tareas asociadas
+            if predefinido and predefinido in PROYECTOS_PREDEFINIDOS:
+                for tarea_data in PROYECTOS_PREDEFINIDOS[predefinido]['tareas']:
+                    Tarea.objects.create(
+                        proyecto=proyecto,
+                        titulo=tarea_data['titulo'],
+                        descripcion=tarea_data['descripcion'],
+                        estado=tarea_data['estado'],
+                        prioridad=tarea_data['prioridad'],
+                        fecha_limite=timezone.now().date() + timezone.timedelta(days=30)  # Fecha límite de ejemplo
+                    )
+
+            messages.success(request, 'Proyecto creado exitosamente.')
             return redirect('proyectos:lista_proyectos')
-        else:
-            messages.error(request, "Por favor, corrige los errores en el formulario.")
-    else:
-        form = ProyectoForm()
-    return render(request, 'proyectos/crear.html', {'form': form, 'titulo': 'Crear Proyecto'})
+        except Usuario.DoesNotExist:
+            messages.error(request, 'El gestor seleccionado no existe.')
+        except Exception as e:
+            messages.error(request, f'Error al crear el proyecto: {str(e)}')
+
+    gestores = Usuario.objects.filter(rol='gestor')
+    predefinidos = [
+        {'clave': clave, 'nombre': data['nombre']}
+        for clave, data in PROYECTOS_PREDEFINIDOS.items()
+    ]
+    return render(request, 'proyectos/crear.html', {'gestores': gestores, 'predefinidos': predefinidos})
 
 @login_required(login_url='/cuentas/login/')
 @rol_requerido('gestor', 'admin')
@@ -98,7 +168,7 @@ def eliminar_proyecto(request, id):
 @login_required(login_url='/cuentas/login/')
 def detalle_proyecto(request, id):
     proyecto = get_object_or_404(Proyecto, id=id)
-    tareas = proyecto.tareas.all()
+    tareas = proyecto.tarea_set.all()
     return render(request, 'proyectos/detalle.html', {'proyecto': proyecto, 'tareas': tareas})
 
 @login_required(login_url='/cuentas/login/')

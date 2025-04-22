@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="container mt-4">
+    <h1>Panel de Control</h1>
+    
+        <div class="card mb-4">
+        <div class="card-header">Proyectos</div>
+        <div class="card-body">
+            <p>Total de Proyectos: {{ proyectos_total }}</p>
+            <canvas id="proyectosChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    
+        <div class="card mb-4">
+        <div class="card-header">Tareas</div>
+        <div class="card-body">
+            <p>Total de Tareas: {{ tareas_total }}</p>
+            <canvas id="tareasChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+    
+        <div class="card mb-4">
+        <div class="card-header">Mercado Laboral</div>
+        <div class="card-body">
+            <p>Total de Ofertas: {{ ofertas_total }}</p>
+            <h5>Habilidades más demandadas:</h5>
+            <ul>
+                {% for habilidad in habilidades_demandadas %}
+                    <li>{{ habilidad.nombre }} ({{ habilidad.num_ofertas }} ofertas)</li>
+                {% endfor %}
+            </ul>
+            <canvas id="habilidadesChart" width="400" height="200"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Gráfico de Proyectos por Estado
+    const proyectosCtx = document.getElementById('proyectosChart').getContext('2d');
+    new Chart(proyectosCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for item in proyectos_por_estado %}'{{ item.estado }}',{% endfor %}],
+            datasets: [{
+                label: 'Proyectos por Estado',
+                data: [{% for item in proyectos_por_estado %}{{ item.total }},{% endfor %}],
+                backgroundColor: 'rgba(75, 192, 192, 0.2)',
+                borderColor: 'rgba(75, 192, 192, 1)',
+                borderWidth: 1
+            }]
+        }
+    });
+
+    // Gráfico de Tareas por Prioridad
+    const tareasCtx = document.getElementById('tareasChart').getContext('2d');
+    new Chart(tareasCtx, {
+        type: 'pie',
+        data: {
+            labels: [{% for item in tareas_por_prioridad %}'Prioridad {{ item.prioridad }}',{% endfor %}],
+            datasets: [{
+                label: 'Tareas por Prioridad',
+                data: [{% for item in tareas_por_prioridad %}{{ item.total }},{% endfor %}],
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+            }]
+        }
+    });
+
+    // Gráfico de Habilidades Demandadas
+    const habilidadesCtx = document.getElementById('habilidadesChart').getContext('2d');
+    new Chart(habilidadesCtx, {
+        type: 'bar',
+        data: {
+            labels: [{% for habilidad in habilidades_demandadas %}'{{ habilidad.nombre }}',{% endfor %}],
+            datasets: [{
+                label: 'Ofertas por Habilidad',
+                data: [{% for habilidad in habilidades_demandadas %}{{ habilidad.num_ofertas }},{% endfor %}],
+                backgroundColor: 'rgba(153, 102, 255, 0.2)',
+                borderColor: 'rgba(153, 102, 255, 1)',
+                borderWidth: 1
+            }]
+        }
+    });
+</script>
+{% endblock %}

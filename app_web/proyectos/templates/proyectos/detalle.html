@@ -1,46 +1,53 @@
 {% extends 'base.html' %}
 {% block content %}
 <div class="container mt-4">
-    <h1>{{ proyecto.nombre }}</h1>
-    <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
-    <p><strong>Gestor:</strong> {{ proyecto.gestor.username }}</p>
-    <p><strong>Estado:</strong> {{ proyecto.get_estado_display }}</p>
-    {% if user.groups.all|length > 0 and 'Gestor de Proyectos' in user.groups.all|map:'name' or user.is_superuser %}
-        <a href="{% url 'proyectos:crear_tarea' proyecto.id %}" class="btn btn-primary mb-3">Añadir Tarea</a>
-        <a href="{% url 'proyectos:editar_proyecto' proyecto.id %}" class="btn btn-warning mb-3">Editar Proyecto</a>
-        <a href="{% url 'proyectos:eliminar_proyecto' proyecto.id %}" class="btn btn-danger mb-3">Eliminar Proyecto</a>
-    {% endif %}
-    <h2>Tareas</h2>
-    <table class="table table-striped">
-        <thead>
-            <tr>
-                <th>Título</th>
-                <th>Estado</th>
-                <th>Prioridad</th>
-                <th>Fecha Límite</th>
-                <th>Acciones</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for tarea in tareas %}
-                <tr>
-                    <td>{{ tarea.titulo }}</td>
-                    <td>{{ tarea.get_estado_display }}</td>
-                    <td>{{ tarea.get_prioridad_display }}</td>
-                    <td>{{ tarea.fecha_limite|default:"Sin definir" }}</td>
-                    <td>
-                        <a href="{% url 'proyectos:editar_tarea' tarea.id %}" class="btn btn-warning">Editar</a>
-                        {% if user in tarea.colaboradores.all or user.groups.all|length > 0 and 'Gestor de Proyectos' in user.groups.all|map:'name' or user.is_superuser %}
-                            <a href="{% url 'proyectos:completar_tarea' tarea.id %}" class="btn btn-success">Completar</a>
-                        {% endif %}
-                        {% if user.groups.all|length > 0 and 'Gestor de Proyectos' in user.groups.all|map:'name' or user.is_superuser %}
-                            <a href="{% url 'proyectos:eliminar_tarea' tarea.id %}" class="btn btn-danger">Eliminar</a>
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    <a href="{% url 'proyectos:lista_proyectos' %}" class="btn btn-secondary">Volver</a>
+    <h1>{{ proyecto.nombre }}</h1>
+    <p><strong>Descripción:</strong> {{ proyecto.descripcion }}</p>
+    <p><strong>Gestor:</strong> {{ proyecto.gestor.username }}</p>
+    <p><strong>Estado:</strong> {{ proyecto.get_estado_display }}</p>
+
+        <a href="{% url 'proyectos:crear_tarea' proyecto.id %}" class="btn btn-primary mb-3">Añadir Tarea</a>
+        <a href="{% url 'proyectos:eliminar_proyecto' proyecto.id %}" class="btn btn-danger mb-3">Eliminar Proyecto</a>
+
+    <h2>Tareas</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Estado</th>
+                <th>Prioridad</th>
+                <th>Fecha Límite</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for tarea in tareas %}
+                <tr>
+                    <td>{{ tarea.titulo }}</td>
+                    <td>{{ tarea.get_estado_display }}</td>
+                    <td>{{ tarea.get_prioridad_display }}</td>
+                    <td>{{ tarea.fecha_limite|default:"Sin definir" }}</td>
+                    <td>
+                        {% if user.is_superuser %}
+                            <a href="{% url 'proyectos:editar_tarea' tarea.id %}" class="btn btn-warning">Editar</a>
+                            <a href="{% url 'proyectos:completar_tarea' tarea.id %}" class="btn btn-success">Completar</a>
+                            <a href="{% url 'proyectos:eliminar_tarea' tarea.id %}" class="btn btn-danger">Eliminar</a>
+                        {% elif user.groups.all|length > 0 %}
+                            {% for group in user.groups.all %}
+                                {% if group.name == 'Gestor de Proyectos' %}
+                                    <a href="{% url 'proyectos:editar_tarea' tarea.id %}" class="btn btn-warning">Editar</a>
+                                    <a href="{% url 'proyectos:completar_tarea' tarea.id %}" class="btn btn-success">Completar</a>
+                                    <a href="{% url 'proyectos:eliminar_tarea' tarea.id %}" class="btn btn-danger">Eliminar</a>
+                            {% endif %}
+                        {% endfor %}
+                    {% else %}
+                        <a href="{% url 'proyectos:completar_tarea' tarea.id %}" class="btn btn-success">Completar</a>
+                    {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <a href="{% url 'proyectos:lista_proyectos' %}" class="btn btn-secondary">Volver</a>
 </div>
 {% endblock %}
