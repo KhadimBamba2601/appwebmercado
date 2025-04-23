@@ -3,6 +3,12 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from .models import Usuario
 from .decorators import rol_requerido
+from django.contrib.auth import logout
+from django.contrib.auth import login, authenticate
+from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
+from django.views.generic import ListView, UpdateView
+from django.urls import reverse_lazy
+from .forms import RegistroForm, PerfilForm
 
 @login_required
 @rol_requerido('admin')
@@ -50,9 +56,45 @@ def eliminar_usuario(request, id):
         return redirect('usuarios:lista_usuarios')
     return render(request, 'usuarios/eliminar.html', {'usuario': usuario})
 
-from django.contrib.auth import logout
-from django.shortcuts import redirect
-
 def logout_view(request):
     logout(request)
     return redirect('usuarios:login')
+
+def registro(request):
+    if request.method == 'POST':
+        form = RegistroForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect('dashboard')
+    else:
+        form = RegistroForm()
+    return render(request, 'usuarios/registro.html', {'form': form})
+
+@login_required
+def perfil(request):
+    if request.method == 'POST':
+        form = PerfilForm(request.POST, instance=request.user)
+        if form.is_valid():
+            form.save()
+            return redirect('perfil')
+    else:
+        form = PerfilForm(instance=request.user)
+    return render(request, 'usuarios/perfil.html', {'form': form})
+
+class ListaUsuarios(LoginRequiredMixin, UserPassesTestMixin, ListView):
+    model = Usuario
+    template_name = 'usuarios/lista.html'
+    context_object_name = 'usuarios'
+
+    def test_func(self):
+        return self.request.user.es_admin()
+
+class EditarUsuario(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
+    model = Usuario
+    form_class = PerfilForm
+    template_name = 'usuarios/editar.html'
+    success_url = reverse_lazy('lista_usuarios')
+
+    def test_func(self):
+        return self.request.user.es_admin()

@@ -112,17 +112,48 @@ def ofertas_empleo(request):
 @login_required(login_url='/cuentas/login/')
 @user_passes_test(is_admin, login_url='/ofertas/')
 def estadisticas(request):
-    # Estadísticas solo para administradores
+
+    """
+    Dashboard principal que muestra estadísticas generales del mercado laboral.
+    """
+    # Estadísticas generales
     total_ofertas = OfertaEmpleo.objects.count()
     ofertas_por_fuente = OfertaEmpleo.objects.values('fuente').annotate(total=Count('id'))
-    habilidades_demandadas = Habilidad.objects.annotate(num_ofertas=Count('ofertaempleo')).order_by('-num_ofertas')[:10]
+    empresas_unicas = OfertaEmpleo.objects.values('empresa').distinct().count()
+    habilidades_unicas = Habilidad.objects.count()
+
+    # Distribución por tipo de trabajo
+    distribucion_tipo = OfertaEmpleo.objects.values('tipo_trabajo').annotate(
+        count=Count('id')
+    ).order_by('-count')[:10]
     
+    tipos_trabajo = [item['tipo_trabajo'] for item in distribucion_tipo]
+    distribucion_tipo = [item['count'] for item in distribucion_tipo]
+
+    # Top habilidades
+    habilidades_demandadas = Habilidad.objects.annotate(num_ofertas=Count('ofertaempleo')).order_by('-num_ofertas')[:10]
+    top_habilidades = Habilidad.objects.annotate(
+        count=Count('ofertaempleo')
+    ).order_by('-count')[:10]
+    
+    habilidades_nombres = [h.nombre for h in top_habilidades]
+    distribucion_habilidades = [h.count for h in top_habilidades]
+
     context = {
         'total_ofertas': total_ofertas,
         'ofertas_por_fuente': ofertas_por_fuente,
+        'empresas_unicas': empresas_unicas,
+        'habilidades_unicas': habilidades_unicas,
+        'tipos_trabajo': tipos_trabajo,
+        'distribucion_tipo': distribucion_tipo,
         'habilidades_demandadas': habilidades_demandadas,
+        'top_habilidades': habilidades_nombres,
+        'distribucion_habilidades': distribucion_habilidades,
     }
+    
     return render(request, 'estadisticas.html', context)
+
+
 
 @login_required(login_url='/cuentas/login/')
 def panel_de_control(request):

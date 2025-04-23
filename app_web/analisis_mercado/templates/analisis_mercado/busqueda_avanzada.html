@@ -1,74 +1,177 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<style>
+    .card {
+        transition: transform 0.2s;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .select2-container {
+        width: 100% !important;
+    }
+    .badge {
+        margin-right: 5px;
+        margin-bottom: 5px;
+    }
+    .pagination {
+        margin-top: 20px;
+        justify-content: center;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1>Búsqueda Avanzada de Ofertas</h1>
-    
+    <h1 class="mb-4">Búsqueda Avanzada de Ofertas</h1>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'warning' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
     <!-- Formulario de búsqueda -->
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Filtros de Búsqueda</h5>
+                </div>
                 <div class="card-body">
-                    <form method="post">
+                    <form method="post" id="search-form">
                         {% csrf_token %}
                         <div class="row">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="titulo">Título del puesto</label>
-                                    <input type="text" class="form-control" id="titulo" name="titulo" value="{{ titulo }}">
+                                    <input type="text" class="form-control" id="titulo" name="titulo" value="{{ titulo|default_if_none:'' }}" placeholder="Ej. Desarrollador Python" aria-describedby="tituloHelp">
+                                    <small id="tituloHelp" class="form-text text-muted">Busca por palabras clave en el título.</small>
                                 </div>
                             </div>
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="ubicacion">Ubicación</label>
-                                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" value="{{ ubicacion }}">
+                                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" value="{{ ubicacion|default_if_none:'' }}" placeholder="Ej. Madrid" aria-describedby="ubicacionHelp">
+                                    <small id="ubicacionHelp" class="form-text text-muted">Ciudad o región de la oferta.</small>
                                 </div>
                             </div>
                         </div>
-                        
+
                         <div class="row mt-3">
-                            <div class="col-md-6">
+                            <div class="col-md-4">
                                 <div class="form-group">
                                     <label for="tipo_trabajo">Tipo de trabajo</label>
                                     <select class="form-control" id="tipo_trabajo" name="tipo_trabajo">
                                         <option value="">Todos</option>
                                         {% for tipo in tipos_trabajo %}
-                                        <option value="{{ tipo }}" {% if tipo == tipo_trabajo %}selected{% endif %}>{{ tipo }}</option>
+                                            <option value="{{ tipo }}" {% if tipo == tipo_trabajo %}selected{% endif %}>{{ tipo }}</option>
                                         {% endfor %}
                                     </select>
                                 </div>
                             </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="tipo_contrato">Tipo de contrato</label>
+                                    <select class="form-control" id="tipo_contrato" name="tipo_contrato">
+                                        <option value="">Todos</option>
+                                        {% for value, label in oferta_empleo_tipo_contrato_choices %}
+                                            <option value="{{ value }}" {% if value == tipo_contrato %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fuente">Fuente</label>
+                                    <select class="form-control" id="fuente" name="fuente">
+                                        <option value="">Todas</option>
+                                        {% for value, label in oferta_empleo_fuente_choices %}
+                                            <option value="{{ value }}" {% if value == fuente %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
                             <div class="col-md-6">
                                 <div class="form-group">
                                     <label for="habilidades">Habilidades</label>
-                                    <select class="form-control" id="habilidades" name="habilidades" multiple>
+                                    <select class="form-control" id="habilidades" name="habilidades" multiple aria-describedby="habilidadesHelp">
                                         {% for habilidad in habilidades %}
-                                        <option value="{{ habilidad.id }}" {% if habilidad.id in habilidades_seleccionadas %}selected{% endif %}>{{ habilidad.nombre }}</option>
+                                            <option value="{{ habilidad.id }}" {% if habilidad.id in habilidades_seleccionadas %}selected{% endif %}>{{ habilidad.nombre }}</option>
                                         {% endfor %}
+                                    </select>
+                                    <small id="habilidadesHelp" class="form-text text-muted">Selecciona una o más habilidades.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="salario_min">Salario mínimo (€)</label>
+                                    <input type="number" class="form-control" id="salario_min" name="salario_min" value="{{ salario_min|default_if_none:'' }}" min="0" placeholder="Ej. 20000" aria-describedby="salarioMinHelp">
+                                    <small id="salarioMinHelp" class="form-text text-muted">Salario anual mínimo.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="salario_max">Salario máximo (€)</label>
+                                    <input type="number" class="form-control" id="salario_max" name="salario_max" value="{{ salario_max|default_if_none:'' }}" min="0" placeholder="Ej. 50000" aria-describedby="salarioMaxHelp">
+                                    <small id="salarioMaxHelp" class="form-text text-muted">Salario anual máximo.</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="row mt-3">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="experiencia_min">Experiencia mínima (años)</label>
+                                    <input type="number" class="form-control" id="experiencia_min" name="experiencia_min" value="{{ experiencia_min|default_if_none:'' }}" min="0" placeholder="Ej. 2" aria-describedby="experienciaHelp">
+                                    <small id="experienciaHelp" class="form-text text-muted">Años de experiencia requeridos.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="fecha_publicacion">Fecha de publicación (desde)</label>
+                                    <input type="date" class="form-control" id="fecha_publicacion" name="fecha_publicacion" value="{{ fecha_publicacion|default_if_none:'' }}" aria-describedby="fechaHelp">
+                                    <small id="fechaHelp" class="form-text text-muted">Ofertas publicadas desde esta fecha.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="activa">Estado de la oferta</label>
+                                    <select class="form-control" id="activa" name="activa">
+                                        <option value="">Todas</option>
+                                        <option value="true" {% if activa == 'true' %}selected{% endif %}>Activas</option>
+                                        <option value="false" {% if activa == 'false' %}selected{% endif %}>Inactivas</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
-                        
-                        <div class="row mt-3">
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="salario_min">Salario mínimo</label>
-                                    <input type="number" class="form-control" id="salario_min" name="salario_min" value="{{ salario_min }}">
-                                </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="form-group">
-                                    <label for="salario_max">Salario máximo</label>
-                                    <input type="number" class="form-control" id="salario_max" name="salario_max" value="{{ salario_max }}">
-                                </div>
-                            </div>
-                        </div>
-                        
+
                         <div class="row mt-3">
                             <div class="col-md-12">
                                 <button type="submit" class="btn btn-primary">Buscar</button>
+                                <a href="{% url 'analisis_mercado:busqueda_avanzada' %}" class="btn btn-secondary">Limpiar</a>
                             </div>
                         </div>
                     </form>
@@ -76,67 +179,129 @@
             </div>
         </div>
     </div>
-    
+
     <!-- Resultados de la búsqueda -->
     {% if resultados %}
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Resultados de la Búsqueda ({{ resultados|length }})</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Resultados de la búsqueda</h5>
                     <div class="table-responsive">
-                        <table class="table">
-                            <thead>
+                        <table class="table table-hover">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>Título</th>
                                     <th>Empresa</th>
                                     <th>Ubicación</th>
-                                    <th>Tipo de trabajo</th>
+                                    <th>Tipo de Trabajo</th>
+                                    <th>Tipo de Contrato</th>
                                     <th>Salario</th>
                                     <th>Habilidades</th>
                                     <th>Fuente</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
                                     <th>Acciones</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {% for oferta in resultados %}
                                 <tr>
-                                    <td>{{ oferta.titulo }}</td>
-                                    <td>{{ oferta.empresa }}</td>
-                                    <td>{{ oferta.ubicacion }}</td>
+                                    <td>{{ oferta.titulo|truncatechars:50 }}</td>
+                                    <td>{{ oferta.empresa|truncatechars:30 }}</td>
+                                    <td>{{ oferta.ubicacion|truncatechars:30 }}</td>
                                     <td>{{ oferta.tipo_trabajo }}</td>
-                                    <td>{{ oferta.salario }}</td>
+                                    <td>{{ oferta.get_tipo_contrato_display }}</td>
+                                    <td>
+                                        {% if oferta.salario_min and oferta.salario_max %}
+                                            {{ oferta.salario_min|floatformat:0 }}€ - {{ oferta.salario_max|floatformat:0 }}€
+                                        {% elif oferta.salario %}
+                                            {{ oferta.salario }}
+                                        {% else %}
+                                            No especificado
+                                        {% endif %}
+                                    </td>
                                     <td>
                                         {% for habilidad in oferta.habilidades.all %}
-                                        <span class="badge bg-primary">{{ habilidad.nombre }}</span>
+                                            <span class="badge bg-primary">{{ habilidad.nombre }}</span>
+                                        {% empty %}
+                                            Sin habilidades
                                         {% endfor %}
                                     </td>
-                                    <td>{{ oferta.fuente }}</td>
+                                    <td>{{ oferta.get_fuente_display }}</td>
+                                    <td>{{ oferta.fecha_publicacion|date:"d/m/Y" }}</td>
                                     <td>
-                                        <a href="{{ oferta.url }}" target="_blank" class="btn btn-sm btn-info">Ver oferta</a>
+                                        <span class="badge {% if oferta.activa %}bg-success{% else %}bg-danger{% endif %}">
+                                            {{ oferta.activa|yesno:"Activa,Inactiva" }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <a href="{{ oferta.url }}" target="_blank" class="btn btn-sm btn-info" aria-label="Ver oferta {{ oferta.titulo }}">Ver oferta</a>
                                     </td>
                                 </tr>
                                 {% endfor %}
                             </tbody>
                         </table>
                     </div>
+
+                    <!-- Paginación -->
+                    {% if resultados.has_other_pages %}
+                    <nav aria-label="Paginación de resultados">
+                        <ul class="pagination">
+                            {% if resultados.has_previous %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ resultados.previous_page_number }}" aria-label="Página anterior">&laquo;</a>
+                                </li>
+                            {% endif %}
+                            {% for num in resultados.paginator.page_range %}
+                                <li class="page-item {% if resultados.number == num %}active{% endif %}">
+                                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                                </li>
+                            {% endfor %}
+                            {% if resultados.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="?page={{ resultados.next_page_number }}" aria-label="Página siguiente">&raquo;</a>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
+    {% else %}
+        {% if form_submitted %}
+        <div class="alert alert-info mt-4" role="alert">
+            No se encontraron resultados para los criterios de búsqueda especificados.
+        </div>
+        {% endif %}
     {% endif %}
 </div>
+{% endblock %}
 
 {% block extra_js %}
 <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 <script>
     $(document).ready(function() {
-        $('#habilidades').select2({
-            placeholder: 'Selecciona habilidades',
-            allowClear: true
+        // Inicializar Select2
+        $('#habilidades, #tipo_contrato, #fuente').select2({
+            placeholder: 'Selecciona una opción',
+            allowClear: true,
+            width: '100%'
+        });
+
+        // Validación del formulario
+        $('#search-form').on('submit', function(e) {
+            const salarioMin = parseFloat($('#salario_min').val());
+            const salarioMax = parseFloat($('#salario_max').val());
+            if (salarioMin && salarioMax && salarioMin > salarioMax) {
+                e.preventDefault();
+                alert('El salario mínimo no puede ser mayor que el salario máximo.');
+            }
         });
     });
 </script>
 {% endblock %}
-{% endblock %} 

@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from django.utils import timezone
 from django.db.models.functions import Cast
 from django.db.models import FloatField
+from django.core.paginator import Paginator
 
 # Create your views here.
 
@@ -83,33 +84,26 @@ def tendencias_habilidades(request):
     return render(request, 'analisis_mercado/tendencias_habilidades.html', context)
 
 @login_required
-def comparativa_salarial(request):
+def habilidades_demandadas(request):
     """
-    Vista que muestra la comparativa salarial por tipo de trabajo y habilidades.
+    Vista que muestra las habilidades más demandadas en el mercado laboral.
     """
-    # Obtener ofertas con salario
-    ofertas_con_salario = OfertaEmpleo.objects.exclude(salario__isnull=True)
+    # Obtener ofertas de los últimos 30 días
+    fecha_limite = timezone.now() - timedelta(days=30)
+    ofertas_recientes = OfertaEmpleo.objects.filter(fecha_publicacion__gte=fecha_limite)
     
-    # Salarios por tipo de trabajo
-    salarios_tipo = ofertas_con_salario.values('tipo_trabajo').annotate(
-        salario_promedio=Avg('salario'),
-        count=Count('id')
-    ).order_by('-salario_promedio')
-    
-    # Salarios por habilidad
-    salarios_habilidad = Habilidad.objects.filter(
-        ofertaempleo__in=ofertas_con_salario
+    # Habilidades más demandadas
+    habilidades_demandadas = Habilidad.objects.filter(
+        ofertaempleo__in=ofertas_recientes
     ).annotate(
-        salario_promedio=Avg('ofertaempleo__salario'),
-        count=Count('ofertaempleo')
-    ).order_by('-salario_promedio')[:20]
+        num_ofertas=Count('ofertaempleo')
+    ).order_by('-num_ofertas')[:20]
     
     context = {
-        'salarios_tipo': salarios_tipo,
-        'salarios_habilidad': salarios_habilidad,
+        'habilidades_demandadas': habilidades_demandadas,
     }
     
-    return render(request, 'analisis_mercado/comparativa_salarial.html', context)
+    return render(request, 'analisis_mercado/habilidades_demandadas.html', context)
 
 @login_required
 def busqueda_avanzada(request):
@@ -161,3 +155,51 @@ def busqueda_avanzada(request):
     context['habilidades'] = Habilidad.objects.all()
     
     return render(request, 'analisis_mercado/busqueda_avanzada.html', context)
+
+@login_required
+def ofertas_empleo(request):
+    """
+    Vista que muestra y filtra las ofertas de empleo.
+    """
+    # Obtener parámetros de filtro
+    titulo = request.GET.get('titulo', '')
+    empresa = request.GET.get('empresa', '')
+    tipo_trabajo = request.GET.get('tipo_trabajo', '')
+    habilidades_ids = request.GET.getlist('habilidades', [])
+    
+    # Construir query
+    query = Q()
+    if titulo:
+        query &= Q(titulo__icontains=titulo)
+    if empresa:
+        query &= Q(empresa__icontains=empresa)
+    if tipo_trabajo:
+        query &= Q(tipo_trabajo=tipo_trabajo)
+    if habilidades_ids:
+        query &= Q(habilidades__id__in=habilidades_ids)
+    
+    # Obtener ofertas filtradas
+    ofertas = OfertaEmpleo.objects.filter(query).distinct().order_by('-fecha_publicacion')
+    
+    # Paginación
+    paginator = Paginator(ofertas, 10)  # 10 ofertas por página
+    page_number = request.GET.get('page')
+    page_obj = paginator.get_page(page_number)
+    
+    # Obtener opciones para los filtros
+    tipos_trabajo = OfertaEmpleo.objects.values_list('tipo_trabajo', flat=True).distinct()
+    habilidades = Habilidad.objects.all()
+    
+    context = {
+        'ofertas': page_obj,
+        'is_paginated': page_obj.has_other_pages(),
+        'page_obj': page_obj,
+        'tipos_trabajo': tipos_trabajo,
+        'habilidades': habilidades,
+        'titulo': titulo,
+        'empresa': empresa,
+        'tipo_trabajo': tipo_trabajo,
+        'habilidades_seleccionadas': habilidades_ids,
+    }
+    
+    return render(request, 'analisis_mercado/ofertas_empleo.html', context)

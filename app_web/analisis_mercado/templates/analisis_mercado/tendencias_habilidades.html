@@ -1,28 +1,158 @@
 {% extends 'base.html' %}
 {% load static %}
 
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<style>
+    .card {
+        transition: transform 0.2s;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .chart-container {
+        position: relative;
+        min-height: 200px;
+        height: 50vh;
+        max-height: 400px;
+        width: 100%;
+    }
+    .badge-highlight {
+        background-color: #28a745;
+        color: white;
+        margin-left: 5px;
+    }
+    .badge-emergente {
+        background-color: #ffc107;
+        color: black;
+        margin-left: 5px;
+    }
+    .pagination {
+        margin-top: 20px;
+        justify-content: center;
+    }
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    .select2-container {
+        width: 100% !important;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1>Tendencias de Habilidades en el Mercado Laboral</h1>
-    
+    <h1 class="mb-4">Tendencias de Habilidades en el Mercado Laboral</h1>
+
+    <!-- Mensajes -->
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'warning' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <!-- Filtro de Tendencias -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Filtrar Tendencias</h5>
+                </div>
+                <div class="card-body">
+                    <form method="get" id="filter-form">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="mes_inicio">Mes de inicio</label>
+                                    <input type="month" class="form-control" id="mes_inicio" name="mes_inicio" value="{{ mes_inicio|default_if_none:'' }}" aria-describedby="mesInicioHelp">
+                                    <small id="mesInicioHelp" class="form-text text-muted">Mes inicial para el análisis.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="mes_fin">Mes de fin</label>
+                                    <input type="month" class="form-control" id="mes_fin" name="mes_fin" value="{{ mes_fin|default_if_none:'' }}" aria-describedby="mesFinHelp">
+                                    <small id="mesFinHelp" class="form-text text-muted">Mes final para el análisis.</small>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="fuente">Fuente</label>
+                                    <select class="form-control" id="fuente" name="fuente">
+                                        <option value="">Todas</option>
+                                        {% for value, label in oferta_empleo_fuente_choices %}
+                                            <option value="{{ value }}" {% if value == fuente %}selected{% endif %}>{{ label }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="ubicacion">Región</label>
+                                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" value="{{ ubicacion|default_if_none:'' }}" placeholder="Ej. Madrid" aria-describedby="ubicacionHelp">
+                                    <small id="ubicacionHelp" class="form-text text-muted">Filtrar por ubicación de las ofertas.</small>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">Filtrar</button>
+                                <a href="{% url 'analisis_mercado:tendencias_mercado' %}" class="btn btn-secondary">Limpiar</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Habilidades por Mes -->
+    {% if habilidades_por_mes %}
     <div class="row mt-4">
         {% for mes, habilidades in habilidades_por_mes.items %}
-        <div class="col-md-4">
+        <div class="col-md-4 mb-4">
             <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Habilidades en {{ mes }} ({{ habilidades.total_ofertas|default:0 }} ofertas)</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Habilidades más demandadas en {{ mes }}</h5>
-                    <table class="table">
-                        <thead>
+                    <table class="table table-hover">
+                        <thead class="table-dark">
                             <tr>
                                 <th>Habilidad</th>
                                 <th>Ofertas</th>
+                                <th>Postulantes</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {% for habilidad in habilidades %}
+                            {% for habilidad in habilidades.habilidades %}
                             <tr>
-                                <td>{{ habilidad.nombre }}</td>
+                                <td>
+                                    {{ habilidad.nombre }}
+                                    {% if habilidad.destacada %}
+                                        <span class="badge badge-highlight">Top</span>
+                                    {% elif habilidad.emergente %}
+                                        <span class="badge badge-emergente">Emergente</span>
+                                    {% endif %}
+                                </td>
                                 <td>{{ habilidad.num_ofertas }}</td>
+                                <td>{{ habilidad.promedio_postulantes|floatformat:0 }}</td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="3" class="text-center">No hay habilidades disponibles</td>
                             </tr>
                             {% endfor %}
                         </tbody>
@@ -32,68 +162,277 @@
         </div>
         {% endfor %}
     </div>
-    
+
+    <!-- Paginación -->
+    {% if habilidades_por_mes_paginated.has_other_pages %}
+    <nav aria-label="Paginación de habilidades por mes">
+        <ul class="pagination">
+            {% if habilidades_por_mes_paginated.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ habilidades_por_mes_paginated.previous_page_number }}{% if request.GET.mes_inicio %}&mes_inicio={{ request.GET.mes_inicio }}{% endif %}{% if request.GET.mes_fin %}&mes_fin={{ request.GET.mes_fin }}{% endif %}{% if request.GET.fuente %}&fuente={{ request.GET.fuente }}{% endif %}{% if request.GET.ubicacion %}&ubicacion={{ request.GET.ubicacion }}{% endif %}" aria-label="Página anterior">«</a>
+                </li>
+            {% endif %}
+            {% for num in habilidades_por_mes_paginated.paginator.page_range %}
+                <li class="page-item {% if habilidades_por_mes_paginated.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}{% if request.GET.mes_inicio %}&mes_inicio={{ request.GET.mes_inicio }}{% endif %}{% if request.GET.mes_fin %}&mes_fin={{ request.GET.mes_fin }}{% endif %}{% if request.GET.fuente %}&fuente={{ request.GET.fuente }}{% endif %}{% if request.GET.ubicacion %}&ubicacion={{ request.GET.ubicacion }}{% endif %}">{{ num }}</a>
+                </li>
+            {% endfor %}
+            {% if habilidades_por_mes_paginated.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ habilidades_por_mes_paginated.next_page_number }}{% if request.GET.mes_inicio %}&mes_inicio={{ request.GET.mes_inicio }}{% endif %}{% if request.GET.mes_fin %}&mes_fin={{ request.GET.mes_fin }}{% endif %}{% if request.GET.fuente %}&fuente={{ request.GET.fuente }}{% endif %}{% if request.GET.ubicacion %}&ubicacion={{ request.GET.ubicacion }}{% endif %}" aria-label="Página siguiente">»</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+    {% else %}
+    <div class="alert alert-info mt-4" role="alert">
+        No hay datos de habilidades disponibles para los criterios seleccionados.
+    </div>
+    {% endif %}
+
+    <!-- Comparación por Fuente -->
+    {% if comparacion_por_fuente %}
     <div class="row mt-4">
         <div class="col-md-12">
             <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Comparación de Habilidades por Fuente</h5>
+                </div>
                 <div class="card-body">
-                    <h5 class="card-title">Evolución de Habilidades</h5>
-                    <canvas id="evolucionHabilidadesChart"></canvas>
+                    <div class="chart-container" aria-label="Gráfico de comparación de habilidades por fuente">
+                        <canvas id="comparacionFuentesChart"></canvas>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
+    {% endif %}
+
+    <!-- Gráfico de Evolución -->
+    {% if habilidades_por_mes %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Evolución de Habilidades</h5>
+                </div>
+                <div class="card-body">
+                    <div class="chart-container" aria-label="Gráfico de evolución de habilidades">
+                        <canvas id="evolucionHabilidadesChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Recomendaciones de IA -->
+    {% if recomendaciones_ia %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Recomendaciones de Habilidades (IA)</h5>
+                </div>
+                <div class="card-body">
+                    <p>Basado en las tendencias del mercado y tus habilidades actuales, te recomendamos aprender:</p>
+                    <ul class="list-group">
+                        {% for recomendacion in recomendaciones_ia %}
+                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                            {{ recomendacion.habilidad }}
+                            <span class="badge bg-primary rounded-pill">{{ recomendacion.confianza|floatformat:2 }}% confianza</span>
+                        </li>
+                        {% empty %}
+                        <li class="list-group-item">No hay recomendaciones disponibles.</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Predicciones de IA -->
+    {% if predicciones_ia %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0">Predicciones de Habilidades Futuras (IA)</h5>
+                </div>
+                <div class="card-body">
+                    <p>Habilidades que se espera que crezcan en los próximos 6 meses:</p>
+                    <div class="row">
+                        {% for prediccion in predicciones_ia %}
+                        <div class="col-md-4 mb-3">
+                            <div class="card">
+                                <div class="card-body">
+                                    <h6>{{ prediccion.habilidad }}</h6>
+                                    <p class="mb-1">Crecimiento estimado: {{ prediccion.crecimiento|floatformat:1 }}%</p>
+                                    <div class="progress">
+                                        <div class="progress-bar" role="progressbar" style="width: {{ prediccion.confianza }}%" aria-valuenow="{{ prediccion.confianza }}" aria-valuemin="0" aria-valuemax="100">
+                                        </divTEXTO> </div>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <div class="col-md-12">
+                            <p>No hay predicciones disponibles.</p>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
 </div>
+{% endblock %}
 
 {% block extra_js %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% if habilidades_por_mes or comparacion_por_fuente %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 <script>
-    // Preparar datos para el gráfico de evolución
-    const meses = {{ habilidades_por_mes.keys|safe }};
-    const habilidades = new Set();
-    {% for habilidades in habilidades_por_mes.values %}
-        {% for habilidad in habilidades %}
-            habilidades.add('{{ habilidad.nombre }}');
-        {% endfor %}
-    {% endfor %}
-    
-    const datasets = [];
-    const colores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
-    let colorIndex = 0;
-    
-    habilidades.forEach(habilidad => {
-        const data = [];
-        {% for mes, habilidades_mes in habilidades_por_mes.items %}
-            const oferta = habilidades_mes.find(h => h.nombre === habilidad);
-            data.push(oferta ? oferta.num_ofertas : 0);
-        {% endfor %}
-        
-        datasets.push({
-            label: habilidad,
-            data: data,
-            borderColor: colores[colorIndex % colores.length],
-            fill: false
+    document.addEventListener('DOMContentLoaded', function() {
+        // Inicializar Select2
+        $('#fuente').select2({
+            placeholder: 'Selecciona una fuente',
+            allowClear: true,
+            width: '100%'
         });
-        colorIndex++;
-    });
-    
-    // Gráfico de evolución de habilidades
-    const evolucionCtx = document.getElementById('evolucionHabilidadesChart').getContext('2d');
-    new Chart(evolucionCtx, {
-        type: 'line',
-        data: {
-            labels: meses,
-            datasets: datasets
-        },
-        options: {
+
+        // Configuración común para gráficos
+        const chartOptions = {
             responsive: true,
-            scales: {
-                y: {
-                    beginAtZero: true
-                }
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
             }
+        };
+
+        // Colores para gráficos
+        const colores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40', '#FF6384', '#36A2EB'];
+
+        // Gráfico de Evolución de Habilidades
+        {% if habilidades_por_mes %}
+        const meses = {{ habilidades_por_mes.keys|safe }};
+        const habilidadesData = {};
+
+        // Recopilar datos de habilidades
+        {% for mes, datos in habilidades_por_mes.items %}
+            {% for habilidad in datos.habilidades %}
+                if (!habilidadesData['{{ habilidad.nombre|escapejs }}']) {
+                    habilidadesData['{{ habilidad.nombre|escapejs }}'] = [];
+                }
+                habilidadesData['{{ habilidad.nombre|escapejs }}'].push({{ habilidad.num_ofertas }});
+            {% endfor %}
+            Object.keys(habilidadesData).forEach(habilidad => {
+                if (habilidadesData[habilidad].length < meses.length) {
+                    habilidadesData[habilidad].push(0);
+                }
+            });
+        {% endfor %}
+
+        const datasetsEvolucion = Object.keys(habilidadesData).slice(0, 10).map((habilidad, index) => ({
+            label: habilidad,
+            data: habilidadesData[habilidad],
+            borderColor: colores[index % colores.length],
+            backgroundColor: colores[index % colores.length] + '80',
+            fill: false,
+            tension: 0.1
+        }));
+
+        const evolucionCtx = document.getElementById('evolucionHabilidadesChart')?.getContext('2d');
+        if (evolucionCtx && meses.length && datasetsEvolucion.length) {
+            new Chart(evolucionCtx, {
+                type: 'line',
+                data: {
+                    labels: meses,
+                    datasets: datasetsEvolucion
+                },
+                options: {
+                    ...chartOptions,
+                    plugins: {
+                        legend: { position: 'top' },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return `${context.dataset.label}: ${context.parsed.y} ofertas`;
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Número de Ofertas' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Mes' }
+                        }
+                    }
+                }
+            });
+        } else {
+            console.warn('No hay datos válidos para el gráfico de evolución');
         }
+        {% endif %}
+
+        // Gráfico de Comparación por Fuente
+        {% if comparacion_por_fuente %}
+        const fuentes = {{ comparacion_por_fuente.fuentes|safe }};
+        const habilidadesComparacion = {};
+
+        {% for fuente, habilidades in comparacion_por_fuente.datos.items %}
+            {% for habilidad in habilidades %}
+                if (!habilidadesComparacion['{{ habilidad.nombre|escapejs }}']) {
+                    habilidadesComparacion['{{ habilidad.nombre|escapejs }}'] = [];
+                }
+                habilidadesComparacion['{{ habilidad.nombre|escapejs }}'].push({{ habilidad.num_ofertas }});
+            {% endfor %}
+            Object.keys(habilidadesComparacion).forEach(habilidad => {
+                if (habilidadesComparacion[habilidad].length < fuentes.length) {
+                    habilidadesComparacion[habilidad].push(0);
+                }
+            });
+        {% endfor %}
+
+        const datasetsComparacion = Object.keys(habilidadesComparacion).slice(0, 5).map((habilidad, index) => ({
+            label: habilidad,
+            data: habilidadesComparacion[habilidad],
+            backgroundColor: colores[index % colores.length] + '80',
+            borderColor: colores[index % colores.length],
+            borderWidth: 1
+        }));
+
+        const comparacionCtx = document.getElementById('comparacionFuentesChart')?.getContext('2d');
+        if (comparacionCtx && fuentes.length && datasetsComparacion.length) {
+            new Chart(comparacionCtx, {
+                type: 'bar',
+                data: {
+                    labels: fuentes,
+                    datasets: datasetsComparacion
+                },
+                options: {
+                    ...chartOptions,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            title: { display: true, text: 'Número de Ofertas' }
+                        },
+                        x: {
+                            title: { display: true, text: 'Fuente' }
+                        }
+                    }
+                }
+            });
+        } else {
+            console.warn('No hay datos válidos para el gráfico de comparación');
+        }
+        {% endif %}
     });
 </script>
+{% endif %}
 {% endblock %}
-{% endblock %} 

@@ -1,48 +1,445 @@
 {% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Estadísticas del Mercado Laboral{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.7.2/font/bootstrap-icons.css" rel="stylesheet">
+<style>
+    .chart-container {
+        position: relative;
+        min-height: 200px;
+        height: 50vh;
+        max-height: 400px;
+        width: 100%;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+    .card {
+        transition: transform 0.2s;
+        margin-bottom: 20px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    .card:hover {
+        transform: translateY(-5px);
+    }
+    .card-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+    }
+    .stat-card {
+        text-align: center;
+        padding: 20px;
+    }
+    .stat-card i {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        color: #28a745;
+    }
+    .stat-card h3 {
+        font-size: 2rem;
+        margin: 10px 0;
+    }
+    .trend-indicator {
+        font-size: 0.9rem;
+        margin-left: 5px;
+    }
+    .trend-up {
+        color: #28a745;
+    }
+    .trend-down {
+        color: #dc3545;
+    }
+    .nav-buttons {
+        margin-bottom: 30px;
+    }
+    .nav-buttons .btn {
+        margin: 5px;
+        padding: 10px 20px;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-4">
-    <h1>Estadísticas del Mercado Laboral</h1>
-    {% if user.groups.all.0.name == 'Administrador' %}
-        <h3>Total de Ofertas: {{ total_ofertas }}</h3>
-        
-        <h4>Ofertas por Fuente</h4>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Fuente</th>
-                    <th>Total</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for fuente in ofertas_por_fuente %}
-                    <tr>
-                        <td>{{ fuente.fuente }}</td>
-                        <td>{{ fuente.total }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-        
-        <h4>Habilidades Más Demandadas</h4>
-        <table class="table table-striped">
-            <thead>
-                <tr>
-                    <th>Habilidad</th>
-                    <th>Número de Ofertas</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for habilidad in habilidades_demandadas %}
-                    <tr>
-                        <td>{{ habilidad.nombre }}</td>
-                        <td>{{ habilidad.num_ofertas }}</td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    {% else %}
-        <p>No tienes permiso para ver esta página.</p>
+    <h1 class="mb-4">Panel de Estadísticas del Mercado Laboral</h1>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert {% if message.tags == 'warning' %}alert-warning{% else %}alert-{{ message.tags }}{% endif %}" role="alert">
+                {{ message }}
+            </div>
+        {% endfor %}
     {% endif %}
-    <a href="{% url 'ofertas_empleo' %}" class="btn btn-secondary">Volver</a>
+
+    {% if user.es_admin or user.is_superuser %}
+        <!-- Sección de Navegación -->
+        <div class="nav-buttons">
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Navegación Rápida</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                                <div class="col-md-3">
+                                    <a href="{% url 'analisis_mercado:ofertas_empleo' %}" class="btn btn-outline-primary btn-block">
+                                        <i class="bi bi-briefcase"></i> Ofertas de Empleo
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'analisis_mercado:habilidades_demandadas' %}" class="btn btn-outline-info btn-block">
+                                        <i class="bi bi-code-slash"></i> Habilidades Demandadas
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'analisis_mercado:tendencias_mercado' %}" class="btn btn-outline-warning btn-block">
+                                        <i class="bi bi-graph-up"></i> Tendencias del Mercado
+                                    </a>
+                                </div>
+                                <div class="col-md-3">
+                                    <a href="{% url 'analisis_mercado:busqueda_avanzada' %}" class="btn btn-outline-success btn-block">
+                                        <i class="bi bi-search"></i> Búsqueda Avanzada
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Estadísticas Generales -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="bi bi-briefcase"></i>
+                    <h5>Total de Ofertas</h5>
+                    <h3>{{ total_ofertas|default:0 }}</h3>
+                    {% if ofertas_variacion is not None %}
+                        <span class="trend-indicator {% if ofertas_variacion > 0 %}trend-up{% else %}trend-down{% endif %}">
+                            <i class="bi bi-arrow-{% if ofertas_variacion > 0 %}up{% else %}down{% endif %}"></i>
+                            {{ ofertas_variacion|floatformat:1 }}%
+                        </span>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="bi bi-building"></i>
+                    <h5>Empresas Únicas</h5>
+                    <h3>{{ empresas_unicas|default:0 }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="bi bi-star"></i>
+                    <h5>Habilidades Únicas</h5>
+                    <h3>{{ habilidades_unicas|default:0 }}</h3>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card stat-card">
+                    <i class="bi bi-currency-euro"></i>
+                    <h5>Salario Promedio</h5>
+                    <h3>{{ salario_promedio|default:0|floatformat:0 }}€</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Principales -->
+        <div class="row">
+            <!-- Distribución por Fuente -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Distribución por Fuente</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="fuentesChart" aria-label="Gráfico de distribución por fuente"></canvas>
+                        </div>
+                        {% if not ofertas_por_fuente %}
+                            <div class="alert alert-info mt-3">No hay datos disponibles para el gráfico de fuentes.</div>
+                        {% elif ofertas_por_fuente %}
+                            <div class="table-responsive mt-3">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Fuente</th>
+                                            <th>Total</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for fuente in ofertas_por_fuente %}
+                                            {% if fuente.total > 0 %}
+                                            <tr>
+                                                <td>{{ fuente.fuente }}</td>
+                                                <td>{{ fuente.total }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Habilidades Más Demandadas -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Top 10 Habilidades más Demandadas</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="habilidadesChart" aria-label="Gráfico de habilidades más demandadas"></canvas>
+                        </div>
+                        {% if not habilidades_demandadas %}
+                            <div class="alert alert-info mt-3">No hay datos disponibles para el gráfico de habilidades.</div>
+                        {% elif habilidades_demandadas %}
+                            <div class="table-responsive mt-3">
+                                <table class="table table-striped table-hover">
+                                    <thead class="table-dark">
+                                        <tr>
+                                            <th>Habilidad</th>
+                                            <th>Ofertas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for habilidad in habilidades_demandadas %}
+                                            {% if habilidad.num_ofertas > 0 %}
+                                            <tr>
+                                                <td>{{ habilidad.nombre }}</td>
+                                                <td>{{ habilidad.num_ofertas }}</td>
+                                            </tr>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráficos Secundarios -->
+        <div class="row mt-4">
+            <!-- Distribución por Tipo de Trabajo -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Distribución por Tipo de Trabajo</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="tipoTrabajoChart" aria-label="Gráfico de distribución por tipo de trabajo"></canvas>
+                        </div>
+                        {% if not distribucion_por_tipo %}
+                            <div class="alert alert-info mt-3">No hay datos disponibles para el gráfico de tipo de trabajo.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tendencias Salariales -->
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5 class="card-title mb-0">Tendencias Salariales</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="chart-container">
+                            <canvas id="salariosChart" aria-label="Gráfico de tendencias salariales"></canvas>
+                        </div>
+                        {% if not tendencias_salariales %}
+                            <div class="alert alert-info mt-3">No hay datos disponibles para el gráfico de tendencias salariales.</div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Habilidades en Tendencia -->
+        {% if habilidades_tendencia %}
+            <div class="card mt-4">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Habilidades en Tendencia</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        {% for habilidad in habilidades_tendencia %}
+                            <div class="col-md-4 mb-3">
+                                <div class="card">
+                                    <div class="card-body">
+                                        <h6>{{ habilidad.habilidad }}</h6>
+                                        <p class="mb-1">Ofertas: {{ habilidad.num_ofertas }}</p>
+                                        <p class="mb-1">Confianza: {{ habilidad.confianza|floatformat:2 }}</p>
+                                        <div class="progress">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ habilidad.confianza }}%"
+                                                 aria-valuenow="{{ habilidad.confianza }}" 
+                                                 aria-valuemin="0" 
+                                                 aria-valuemax="100">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+
+        <a href="{% url 'ofertas_empleo' %}" class="btn btn-secondary mt-3">Volver</a>
+    {% else %}
+        <div class="alert alert-warning" role="alert">
+            <p>No tienes permisos para ver las estadísticas. Este contenido está restringido a administradores y superusuarios. Por favor, contacta al administrador del sistema.</p>
+        </div>
+    {% endif %}
 </div>
+{% endblock %}
+
+{% block extra_js %}
+{% if user.es_admin or user.is_superuser %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Configuración común para gráficos
+            const chartOptions = {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'top' }
+                }
+            };
+
+            // Colores para gráficos
+            const pieColors = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
+            const barColors = {
+                fuentes: { bg: 'rgba(255, 159, 64, 0.2)', border: 'rgba(255, 159, 64, 1)' },
+                habilidades: { bg: 'rgba(153, 102, 255, 0.2)', border: 'rgba(153, 102, 255, 1)' },
+                salarios: { bg: 'rgba(75, 192, 192, 0.2)', border: 'rgba(75, 192, 192, 1)' }
+            };
+
+            // Función auxiliar para inicializar gráficos
+            function initChart(ctx, type, labels, values, label, colors, isBar) {
+                if (!ctx || !labels?.length || !values?.length) {
+                    console.warn(`No se pueden renderizar datos para ${label}`);
+                    return;
+                }
+
+                // Filtrar datos sin valor
+                const filteredData = labels.map((label, index) => ({
+                    label,
+                    value: values[index]
+                })).filter(item => item.value > 0);
+
+                if (filteredData.length === 0) {
+                    console.warn(`No hay datos válidos para ${label}`);
+                    return;
+                }
+
+                new Chart(ctx, {
+                    type: type,
+                    data: {
+                        labels: filteredData.map(item => item.label),
+                        datasets: [{
+                            label: label,
+                            data: filteredData.map(item => item.value),
+                            backgroundColor: isBar ? colors.bg : pieColors,
+                            borderColor: isBar ? colors.border : pieColors,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...chartOptions,
+                        plugins: { legend: { position: isBar ? 'top' : 'bottom' } },
+                        scales: isBar ? {
+                            y: { beginAtZero: true, title: { display: true, text: label } }
+                        } : undefined
+                    }
+                });
+            }
+
+            // Gráfico de Ofertas por Fuente
+            {% if ofertas_por_fuente %}
+            const fuentesData = { labels: [], values: [] };
+            {% for fuente in ofertas_por_fuente %}
+                fuentesData.labels.push('{{ fuente.fuente|escapejs }}');
+                fuentesData.values.push({{ fuente.total }});
+            {% endfor %}
+            initChart(
+                document.getElementById('fuentesChart')?.getContext('2d'),
+                'bar',
+                fuentesData.labels,
+                fuentesData.values,
+                'Ofertas por Fuente',
+                barColors.fuentes,
+                true
+            );
+            {% endif %}
+
+            // Gráfico de Habilidades Más Demandadas
+            {% if habilidades_demandadas %}
+            const habilidadesData = { labels: [], values: [] };
+            {% for habilidad in habilidades_demandadas %}
+                habilidadesData.labels.push('{{ habilidad.nombre|escapejs }}');
+                habilidadesData.values.push({{ habilidad.num_ofertas }});
+            {% endfor %}
+            initChart(
+                document.getElementById('habilidadesChart')?.getContext('2d'),
+                'bar',
+                habilidadesData.labels,
+                habilidadesData.values,
+                'Ofertas por Habilidad',
+                barColors.habilidades,
+                true
+            );
+            {% endif %}
+
+            // Gráfico de Distribución por Tipo de Trabajo
+            {% if distribucion_por_tipo %}
+            const tipoTrabajoData = { labels: [], values: [] };
+            {% for item in distribucion_por_tipo %}
+                tipoTrabajoData.labels.push('{{ item.tipo_trabajo|escapejs }}');
+                tipoTrabajoData.values.push({{ item.count }});
+            {% endfor %}
+            initChart(
+                document.getElementById('tipoTrabajoChart')?.getContext('2d'),
+                'doughnut',
+                tipoTrabajoData.labels,
+                tipoTrabajoData.values,
+                'Distribución por Tipo de Trabajo',
+                pieColors,
+                false
+            );
+            {% endif %}
+
+            // Gráfico de Tendencias Salariales
+            {% if tendencias_salariales %}
+            const salariosData = { labels: [], values: [] };
+            {% for item in tendencias_salariales %}
+                salariosData.labels.push('{{ item.mes|escapejs }}');
+                salariosData.values.push({{ item.salario_promedio }});
+            {% endfor %}
+            initChart(
+                document.getElementById('salariosChart')?.getContext('2d'),
+                'line',
+                salariosData.labels,
+                salariosData.values,
+                'Salario Promedio (€)',
+                barColors.salarios,
+                true
+            );
+            {% endif %}
+        });
+    </script>
+{% endif %}
 {% endblock %}
