@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Dashboard de Análisis del Mercado Laboral</h1>
+    
+    <!-- Resumen general -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Resumen General</h5>
+                    <p>Total de ofertas: {{ total_ofertas }}</p>
+                    <p>Ofertas en los últimos 30 días: {{ ofertas_30_dias }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Distribución por Fuente</h5>
+                    <canvas id="fuenteChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Habilidades más demandadas -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Habilidades más Demandadas</h5>
+                    <canvas id="habilidadesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Distribución por tipo de trabajo -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Distribución por Tipo de Trabajo</h5>
+                    <canvas id="tipoTrabajoChart"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Tendencias Salariales</h5>
+                    <canvas id="salariosChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de distribución por fuente
+    const fuenteCtx = document.getElementById('fuenteChart').getContext('2d');
+    new Chart(fuenteCtx, {
+        type: 'pie',
+        data: {
+            labels: {{ distribucion_fuente|safe }},
+            datasets: [{
+                data: {{ distribucion_fuente.values|safe }},
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+            }]
+        }
+    });
+    
+    // Gráfico de habilidades más demandadas
+    const habilidadesCtx = document.getElementById('habilidadesChart').getContext('2d');
+    new Chart(habilidadesCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ habilidades_demandadas|safe }},
+            datasets: [{
+                label: 'Número de ofertas',
+                data: {{ habilidades_demandadas.values|safe }},
+                backgroundColor: '#36A2EB'
+            }]
+        }
+    });
+    
+    // Gráfico de distribución por tipo de trabajo
+    const tipoTrabajoCtx = document.getElementById('tipoTrabajoChart').getContext('2d');
+    new Chart(tipoTrabajoCtx, {
+        type: 'doughnut',
+        data: {
+            labels: {{ distribucion_tipo|safe }},
+            datasets: [{
+                data: {{ distribucion_tipo.values|safe }},
+                backgroundColor: ['#FF6384', '#36A2EB', '#FFCE56']
+            }]
+        }
+    });
+    
+    // Gráfico de tendencias salariales
+    const salariosCtx = document.getElementById('salariosChart').getContext('2d');
+    new Chart(salariosCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ salarios|safe }},
+            datasets: [{
+                label: 'Salario promedio',
+                data: {{ salarios.values|safe }},
+                backgroundColor: '#FFCE56'
+            }]
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 

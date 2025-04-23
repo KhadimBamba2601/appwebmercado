@@ -12,6 +12,9 @@ from django.db.models import Count
 from motor_ia.predicciones import predecir_habilidades_tendencia
 from motor_ia.chat_processor import procesar_mensaje
 import logging
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
 
 # Configurar logging
 logger = logging.getLogger(__name__)
@@ -29,31 +32,6 @@ def index(request):
         'titulo': 'Gestión de Tareas y Mercado',
     }
     return render(request, 'index.html', context)
-
-@login_required
-@rol_requerido('admin')
-def importar_ofertas(request):
-    if request.method == 'POST':
-        fuente = request.POST.get('fuente', 'Tecnoempleo')
-        titulo = request.POST.get('titulo', '')
-        ubicacion = request.POST.get('ubicacion', '')
-
-        if fuente == 'Tecnoempleo':
-            ofertas = scrape_tecnoempleo(titulo=titulo, ubicacion=ubicacion)
-        elif fuente == 'InfoJobs':
-            ofertas = scrape_infojobs(titulo=titulo, ubicacion=ubicacion)
-        elif fuente == 'LinkedIn':
-            ofertas = scrape_linkedin(titulo=titulo, ubicacion=ubicacion)
-        else:
-            ofertas = []
-
-        guardar_ofertas(ofertas)
-        mensaje = f"Importadas {len(ofertas)} ofertas de {fuente}"
-        if titulo or ubicacion:
-            mensaje += f" (Título: {titulo}, Ubicación: {ubicacion})"
-        return render(request, 'datos_externos/importar.html', {'mensaje': mensaje})
-    
-    return render(request, 'datos_externos/importar.html')
 
 @login_required(login_url='/cuentas/login/')
 def ofertas_empleo(request):
@@ -209,27 +187,60 @@ def panel_de_control(request):
     return render(request, 'panel_de_control.html', context)
 
 @login_required(login_url='/cuentas/login/')
-def chat(request):
-    # Obtener o inicializar el historial de chat desde la sesión
-    if 'chat_history' not in request.session:
-        request.session['chat_history'] = []
+def chat_load_last(request):
+    """
+    Carga los últimos 3 mensajes del historial del chat del usuario, generando HTML directamente.
+    """
+    chat_history = request.session.get('chat_history', [])
+    last_messages = chat_history[-3:]
+    html_messages = ""
+    for msg in last_messages:
+        html_messages += f'<div class="chat-message user-message">{msg.get("user", "")}</div>'
+        html_messages += f'<div class="chat-message bot-message">{msg.get("bot", "")}</div>'
+    return JsonResponse({'html': html_messages})
 
+@login_required(login_url='/cuentas/login/')
+@csrf_exempt
+def chat(request):
     if request.method == 'POST':
-        mensaje = request.POST.get('mensaje', '').strip()
-        if not mensaje:
-            messages.error(request, "Por favor, ingresa un mensaje.")
-        else:
+        try:
+            # Verificar si es una solicitud AJAX
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                data = json.loads(request.body.decode('utf-8'))
+            else:
+                data = request.POST
+            
+            mensaje = data.get('mensaje', '').strip()
+            if not mensaje:
+                return JsonResponse({'error': 'Por favor, ingresa un mensaje.'}, status=400)
+            
+            # Obtener o inicializar el historial de chat desde la sesión
+            if 'chat_history' not in request.session:
+                request.session['chat_history'] = []
+
             # Procesar el mensaje
             respuesta = procesar_mensaje(mensaje, request.user)
+
             # Añadir al historial
             request.session['chat_history'].append({'user': mensaje, 'bot': respuesta})
-            # Limitar historial a 50 mensajes para evitar exceso de datos
+            # Limitar historial a 50 mensajes
             request.session['chat_history'] = request.session['chat_history'][-50:]
             request.session.modified = True
+            
             logger.info(f"Chat - Mensaje: {mensaje}, Respuesta: {respuesta}")
-
-    # Pasar el historial al contexto
-    context = {
-        'chat_history': request.session['chat_history'],
-    }
-    return render(request, 'chat.html', context)
+            
+            if request.headers.get('X-Requested-With') == 'XMLHttpRequest':
+                return JsonResponse({
+                    'response': respuesta,
+                    'html': f'<div class="chat-message user-message">{mensaje}</div><div class="chat-message bot-message">{respuesta}</div>'
+                })
+            else:
+                return render(request, 'chat.html', {'chat_history': request.session['chat_history']})
+                
+        except json.JSONDecodeError:
+            return JsonResponse({'error': 'Error al decodificar JSON'}, status=400)
+        except Exception as e:
+            logger.error(f"Error en chat: {str(e)}")
+            return JsonResponse({'error': 'Error interno del servidor'}, status=500)
+    else:
+        return render(request, 'chat.html', {'chat_history': request.session.get('chat_history', [])})

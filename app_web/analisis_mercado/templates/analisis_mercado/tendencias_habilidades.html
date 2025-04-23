@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Tendencias de Habilidades en el Mercado Laboral</h1>
+    
+    <div class="row mt-4">
+        {% for mes, habilidades in habilidades_por_mes.items %}
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Habilidades más demandadas en {{ mes }}</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Habilidad</th>
+                                <th>Ofertas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for habilidad in habilidades %}
+                            <tr>
+                                <td>{{ habilidad.nombre }}</td>
+                                <td>{{ habilidad.num_ofertas }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Evolución de Habilidades</h5>
+                    <canvas id="evolucionHabilidadesChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Preparar datos para el gráfico de evolución
+    const meses = {{ habilidades_por_mes.keys|safe }};
+    const habilidades = new Set();
+    {% for habilidades in habilidades_por_mes.values %}
+        {% for habilidad in habilidades %}
+            habilidades.add('{{ habilidad.nombre }}');
+        {% endfor %}
+    {% endfor %}
+    
+    const datasets = [];
+    const colores = ['#FF6384', '#36A2EB', '#FFCE56', '#4BC0C0', '#9966FF'];
+    let colorIndex = 0;
+    
+    habilidades.forEach(habilidad => {
+        const data = [];
+        {% for mes, habilidades_mes in habilidades_por_mes.items %}
+            const oferta = habilidades_mes.find(h => h.nombre === habilidad);
+            data.push(oferta ? oferta.num_ofertas : 0);
+        {% endfor %}
+        
+        datasets.push({
+            label: habilidad,
+            data: data,
+            borderColor: colores[colorIndex % colores.length],
+            fill: false
+        });
+        colorIndex++;
+    });
+    
+    // Gráfico de evolución de habilidades
+    const evolucionCtx = document.getElementById('evolucionHabilidadesChart').getContext('2d');
+    new Chart(evolucionCtx, {
+        type: 'line',
+        data: {
+            labels: meses,
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,144 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Comparativa Salarial</h1>
+    
+    <!-- Salarios por tipo de trabajo -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Salarios por Tipo de Trabajo</h5>
+                    <canvas id="salariosTipoChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Salarios por habilidad -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Salarios por Habilidad</h5>
+                    <canvas id="salariosHabilidadChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Tablas de datos -->
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Detalle por Tipo de Trabajo</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Tipo de Trabajo</th>
+                                <th>Salario Promedio</th>
+                                <th>Número de Ofertas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tipo in salarios_tipo %}
+                            <tr>
+                                <td>{{ tipo.tipo_trabajo }}</td>
+                                <td>{{ tipo.salario_promedio|floatformat:2 }} €</td>
+                                <td>{{ tipo.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Detalle por Habilidad</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Habilidad</th>
+                                <th>Salario Promedio</th>
+                                <th>Número de Ofertas</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for habilidad in salarios_habilidad %}
+                            <tr>
+                                <td>{{ habilidad.nombre }}</td>
+                                <td>{{ habilidad.salario_promedio|floatformat:2 }} €</td>
+                                <td>{{ habilidad.count }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de salarios por tipo de trabajo
+    const salariosTipoCtx = document.getElementById('salariosTipoChart').getContext('2d');
+    new Chart(salariosTipoCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ salarios_tipo|safe }},
+            datasets: [{
+                label: 'Salario promedio (€)',
+                data: {{ salarios_tipo.values|safe }},
+                backgroundColor: '#36A2EB'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Salario promedio (€)'
+                    }
+                }
+            }
+        }
+    });
+    
+    // Gráfico de salarios por habilidad
+    const salariosHabilidadCtx = document.getElementById('salariosHabilidadChart').getContext('2d');
+    new Chart(salariosHabilidadCtx, {
+        type: 'bar',
+        data: {
+            labels: {{ salarios_habilidad|safe }},
+            datasets: [{
+                label: 'Salario promedio (€)',
+                data: {{ salarios_habilidad.values|safe }},
+                backgroundColor: '#FFCE56'
+            }]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    title: {
+                        display: true,
+                        text: 'Salario promedio (€)'
+                    }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}
+{% endblock %} 

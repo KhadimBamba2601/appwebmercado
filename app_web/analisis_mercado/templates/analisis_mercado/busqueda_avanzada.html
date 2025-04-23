@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Búsqueda Avanzada de Ofertas</h1>
+    
+    <!-- Formulario de búsqueda -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="titulo">Título del puesto</label>
+                                    <input type="text" class="form-control" id="titulo" name="titulo" value="{{ titulo }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="ubicacion">Ubicación</label>
+                                    <input type="text" class="form-control" id="ubicacion" name="ubicacion" value="{{ ubicacion }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="tipo_trabajo">Tipo de trabajo</label>
+                                    <select class="form-control" id="tipo_trabajo" name="tipo_trabajo">
+                                        <option value="">Todos</option>
+                                        {% for tipo in tipos_trabajo %}
+                                        <option value="{{ tipo }}" {% if tipo == tipo_trabajo %}selected{% endif %}>{{ tipo }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="habilidades">Habilidades</label>
+                                    <select class="form-control" id="habilidades" name="habilidades" multiple>
+                                        {% for habilidad in habilidades %}
+                                        <option value="{{ habilidad.id }}" {% if habilidad.id in habilidades_seleccionadas %}selected{% endif %}>{{ habilidad.nombre }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="salario_min">Salario mínimo</label>
+                                    <input type="number" class="form-control" id="salario_min" name="salario_min" value="{{ salario_min }}">
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="salario_max">Salario máximo</label>
+                                    <input type="number" class="form-control" id="salario_max" name="salario_max" value="{{ salario_max }}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row mt-3">
+                            <div class="col-md-12">
+                                <button type="submit" class="btn btn-primary">Buscar</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Resultados de la búsqueda -->
+    {% if resultados %}
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Resultados de la búsqueda</h5>
+                    <div class="table-responsive">
+                        <table class="table">
+                            <thead>
+                                <tr>
+                                    <th>Título</th>
+                                    <th>Empresa</th>
+                                    <th>Ubicación</th>
+                                    <th>Tipo de trabajo</th>
+                                    <th>Salario</th>
+                                    <th>Habilidades</th>
+                                    <th>Fuente</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for oferta in resultados %}
+                                <tr>
+                                    <td>{{ oferta.titulo }}</td>
+                                    <td>{{ oferta.empresa }}</td>
+                                    <td>{{ oferta.ubicacion }}</td>
+                                    <td>{{ oferta.tipo_trabajo }}</td>
+                                    <td>{{ oferta.salario }}</td>
+                                    <td>
+                                        {% for habilidad in oferta.habilidades.all %}
+                                        <span class="badge bg-primary">{{ habilidad.nombre }}</span>
+                                        {% endfor %}
+                                    </td>
+                                    <td>{{ oferta.fuente }}</td>
+                                    <td>
+                                        <a href="{{ oferta.url }}" target="_blank" class="btn btn-sm btn-info">Ver oferta</a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<script>
+    $(document).ready(function() {
+        $('#habilidades').select2({
+            placeholder: 'Selecciona habilidades',
+            allowClear: true
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %} 

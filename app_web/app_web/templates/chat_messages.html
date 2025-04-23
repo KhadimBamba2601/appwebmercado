@@ -1,0 +1,7 @@
+{% for mensaje in mensajes %}
+    <div class="chat-message {% if mensaje.user == request.user %}user-message{% else %}bot-message{% endif %}">
+        {{ mensaje.content }}
+    </div>
+{% empty %}
+    <div class="chat-message bot-message">No hay mensajes aún. ¡Empieza a chatear!</div>
+{% endfor %}

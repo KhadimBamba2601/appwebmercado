@@ -1,0 +1,153 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Ofertas de Empleo{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice {
+        background-color: #007bff;
+        border: 1px solid #0056b3;
+        color: white;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove {
+        color: white;
+        margin-right: 5px;
+    }
+    .select2-container--default .select2-selection--multiple .select2-selection__choice__remove:hover {
+        color: #ffd700;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1 class="mb-4">Ofertas de Empleo</h1>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="titulo" class="form-label">Título</label>
+                    <input type="text" class="form-control" id="titulo" name="titulo" value="{{ request.GET.titulo }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="empresa" class="form-label">Empresa</label>
+                    <input type="text" class="form-control" id="empresa" name="empresa" value="{{ request.GET.empresa }}">
+                </div>
+                <div class="col-md-3">
+                    <label for="tipo_trabajo" class="form-label">Tipo de Trabajo</label>
+                    <select class="form-select" id="tipo_trabajo" name="tipo_trabajo">
+                        <option value="">Todos</option>
+                        {% for tipo in tipos_trabajo %}
+                        <option value="{{ tipo }}" {% if request.GET.tipo_trabajo == tipo %}selected{% endif %}>{{ tipo }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="habilidades" class="form-label">Habilidades</label>
+                    <select class="form-select" id="habilidades" name="habilidades" multiple>
+                        {% for habilidad in habilidades %}
+                        <option value="{{ habilidad.id }}" {% if habilidad.id|stringformat:"i" in request.GET.getlist 'habilidades' %}selected{% endif %}>{{ habilidad.nombre }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{% url 'ofertas_empleo' %}" class="btn btn-secondary">Limpiar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Ofertas -->
+    <div class="row">
+        {% for oferta in ofertas %}
+        <div class="col-md-6 mb-4">
+            <div class="card h-100">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">{{ oferta.titulo }}</h5>
+                </div>
+                <div class="card-body">
+                    <p class="card-text"><strong>Empresa:</strong> {{ oferta.empresa }}</p>
+                    <p class="card-text"><strong>Tipo de Trabajo:</strong> {{ oferta.tipo_trabajo }}</p>
+                    <p class="card-text"><strong>Ubicación:</strong> {{ oferta.ubicacion }}</p>
+                    <p class="card-text"><strong>Habilidades:</strong></p>
+                    <div class="mb-3">
+                        {% for habilidad in oferta.habilidades.all %}
+                        <span class="badge bg-primary me-1">{{ habilidad.nombre }}</span>
+                        {% endfor %}
+                    </div>
+                    <p class="card-text"><small class="text-muted">Publicado: {{ oferta.fecha_publicacion|date:"d/m/Y" }}</small></p>
+                </div>
+                <div class="card-footer">
+                    <a href="{{ oferta.url }}" class="btn btn-primary" target="_blank">Ver Oferta</a>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info">
+                No se encontraron ofertas que coincidan con los criterios de búsqueda.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Paginación -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page=1{% if request.GET.titulo %}&titulo={{ request.GET.titulo }}{% endif %}{% if request.GET.empresa %}&empresa={{ request.GET.empresa }}{% endif %}{% if request.GET.tipo_trabajo %}&tipo_trabajo={{ request.GET.tipo_trabajo }}{% endif %}{% if request.GET.habilidades %}{% for h in request.GET.getlist 'habilidades' %}&habilidades={{ h }}{% endfor %}{% endif %}">Primera</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.titulo %}&titulo={{ request.GET.titulo }}{% endif %}{% if request.GET.empresa %}&empresa={{ request.GET.empresa }}{% endif %}{% if request.GET.tipo_trabajo %}&tipo_trabajo={{ request.GET.tipo_trabajo }}{% endif %}{% if request.GET.habilidades %}{% for h in request.GET.getlist 'habilidades' %}&habilidades={{ h }}{% endfor %}{% endif %}">Anterior</a>
+            </li>
+            {% endif %}
+
+            <li class="page-item active">
+                <span class="page-link">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+            </li>
+
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.titulo %}&titulo={{ request.GET.titulo }}{% endif %}{% if request.GET.empresa %}&empresa={{ request.GET.empresa }}{% endif %}{% if request.GET.tipo_trabajo %}&tipo_trabajo={{ request.GET.tipo_trabajo }}{% endif %}{% if request.GET.habilidades %}{% for h in request.GET.getlist 'habilidades' %}&habilidades={{ h }}{% endfor %}{% endif %}">Siguiente</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% if request.GET.titulo %}&titulo={{ request.GET.titulo }}{% endif %}{% if request.GET.empresa %}&empresa={{ request.GET.empresa }}{% endif %}{% if request.GET.tipo_trabajo %}&tipo_trabajo={{ request.GET.tipo_trabajo }}{% endif %}{% if request.GET.habilidades %}{% for h in request.GET.getlist 'habilidades' %}&habilidades={{ h }}{% endfor %}{% endif %}">Última</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script>
+    $(document).ready(function() {
+        $('#habilidades').select2({
+            placeholder: 'Seleccione habilidades',
+            allowClear: true,
+            language: {
+                noResults: function() {
+                    return "No se encontraron resultados";
+                }
+            }
+        });
+    });
+</script>
+{% endblock %} 

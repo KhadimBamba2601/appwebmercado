@@ -1,8 +1,10 @@
+import os
 from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-wv^ss)@mbmglh=a+2ccs_9vlpdp%!xr3v9l#3&gs%$7^m3fp$^'
 DEBUG = True
 ALLOWED_HOSTS = []
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -35,6 +37,9 @@ TEMPLATES = [
         'DIRS': [
             BASE_DIR / 'app_web' / 'templates',
             BASE_DIR / 'usuarios' / 'templates',
+            BASE_DIR / 'analisis_mercado' / 'templates',
+            BASE_DIR / 'proyectos' / 'templates',
+            BASE_DIR / 'datos_externos' / 'templates',
         ],
         'APP_DIRS': True,
         'OPTIONS': {
@@ -48,6 +53,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'app_web.wsgi.application'
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -64,6 +70,7 @@ DATABASES = {
 }
 
 AUTH_USER_MODEL = 'usuarios.Usuario'
+
 AUTH_PASSWORD_VALIDATORS = [
     {
         'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
@@ -78,16 +85,26 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+
+LANGUAGE_CODE = 'es-es'
+TIME_ZONE = 'Europe/Madrid'
 USE_I18N = True
 USE_TZ = True
+
 STATIC_URL = 'static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+STATICFILES_DIRS = [
+    BASE_DIR / 'static',
+]
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 LOGIN_URL = '/usuarios/login/'
 LOGIN_REDIRECT_URL = '/proyectos/'
-LOGOUT_REDIRECT_URL = '/usuarios/login/' 
+LOGOUT_REDIRECT_URL = '/usuarios/login/'
+
 XAI_API_KEY = 'tuclaveapi'
+
 LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,

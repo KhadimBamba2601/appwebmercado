@@ -44,3 +44,4 @@ def habilidades_tendencia(request):
         'habilidades_tendencia': resultado
     }
     return render(request, 'motor_ia/habilidades_tendencia.html', context)
+
