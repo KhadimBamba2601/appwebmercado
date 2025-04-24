@@ -2,14 +2,15 @@
 import re
 from django.utils import timezone
 from datetime import timedelta
-from analisis_mercado.models import OfertaEmpleo, Habilidad
 
-SALARIO_PATTERN = re.compile(r'(\d+[.,]?\d*\s*(?:€|k|K|$)(?:\s*-\s*\d+[.,]?\d*\s*(?:€|k|K|$))?(?:\s*b?ruto?/[ha]nual)?)', re.IGNORECASE)
+# Patrón para extraer salarios
+SALARIO_PATTERN = re.compile(r'\d{1,3}(?:\.\d{3})*(?:,\d{2})?(?:\s*-\s*\d{1,3}(?:\.\d{3})*(?:,\d{2})?)?(?:\s*k)?(?:\s*€|\s*EUR)?')
 
+# Keywords para identificar tipos de trabajo
 TIPO_TRABAJO_KEYWORDS = {
-    "Remoto": ["remoto", "teletrabajo", "full remote", "100% remoto"],
-    "Híbrido": ["híbrido", "hibrido", "hybrid", "parcialmente remoto"],
-    "Presencial": ["presencial", "on-site", "en oficina"]
+    'Presencial': ['presencial', 'on-site', 'en oficina', 'en la oficina', 'en el lugar', 'in office'],
+    'Remoto': ['remoto', 'remote', 'teletrabajo', 'trabajo desde casa', 'work from home', 'wfh'],
+    'Híbrido': ['híbrido', 'hybrid', 'mixto', 'flexible', 'combinado']
 }
 
 def limpiar_ofertas_antiguas():

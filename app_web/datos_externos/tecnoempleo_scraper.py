@@ -4,6 +4,7 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from bs4 import BeautifulSoup
 from datetime import date
+import os
 from .utils import SALARIO_PATTERN, TIPO_TRABAJO_KEYWORDS
 
 def scrape_tecnoempleo(titulo='', ubicacion=''):
@@ -17,7 +18,12 @@ def scrape_tecnoempleo(titulo='', ubicacion=''):
     
     options = Options()
     options.headless = True
-    service = Service(executable_path="C:/Users/Bamba/Desktop/Proyectos/appwebmercado/chromedriver-win64/chromedriver-win64/chromedriver.exe")
+    
+    # Obtener la ruta absoluta del directorio del proyecto
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    chromedriver_path = os.path.join(base_dir, 'chromedriver-win64', 'chromedriver-win64', 'chromedriver.exe')
+    
+    service = Service(executable_path=chromedriver_path)
     driver = webdriver.Chrome(service=service, options=options)
     
     try:

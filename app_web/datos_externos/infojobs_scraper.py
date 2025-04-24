@@ -9,6 +9,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from django.utils import timezone
 import time
 import random
+import os
 from .utils import SALARIO_PATTERN, TIPO_TRABAJO_KEYWORDS
 
 def scrape_infojobs(titulo='', ubicacion=''):
@@ -25,7 +26,12 @@ def scrape_infojobs(titulo='', ubicacion=''):
     options.headless = False  # Necesario para verificación manual
     options.add_argument("--disable-blink-features=AutomationControlled")  # Evitar detección de bot
     options.add_argument("user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-    service = Service(executable_path="C:/Users/Bamba/Desktop/Proyectos/appwebmercado/chromedriver-win64/chromedriver-win64/chromedriver.exe")
+    
+    # Obtener la ruta absoluta del directorio del proyecto
+    base_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    chromedriver_path = os.path.join(base_dir, 'chromedriver-win64', 'chromedriver-win64', 'chromedriver.exe')
+    
+    service = Service(executable_path=chromedriver_path)
     driver = webdriver.Chrome(service=service, options=options)
     
     try:

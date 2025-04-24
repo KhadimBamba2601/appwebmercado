@@ -1,0 +1,8 @@
+2025-04-24 14:22:00,931 - INFO - Iniciando scrape_linkedin con título: 'programador', ubicación: ''
+2025-04-24 14:22:00,932 - INFO - Intentando autenticación con LinkedIn API
+2025-04-24 14:22:02,819 - INFO - Autenticación exitosa
+2025-04-24 14:22:02,819 - INFO - Parámetros de búsqueda: {'keywords': 'developer'}
+2025-04-24 14:22:02,819 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:22:08,323 - INFO - Respuesta cruda de api.search_jobs: []
+2025-04-24 14:22:08,324 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:22:08,324 - INFO - Scraping completado. Total de ofertas procesadas: 0

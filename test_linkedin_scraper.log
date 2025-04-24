@@ -1,0 +1,161 @@
+2025-04-24 13:11:05,501 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 13:11:05,501 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 13:11:06,053 - ERROR - Error en scrape_linkedin: CHALLENGE
+Traceback (most recent call last):
+  File "C:\Users\informaticos\desktop\Proyectos\appwebmercado\app_web\datos_externos\linkedin_scraper.py", line 23, in scrape_linkedin
+    api = Linkedin("trabajoempresakn@gmail.com", "1stanc321")  # Reemplaza con tus credenciales
+  File "C:\Users\informaticos\AppData\Local\Programs\Python\Python313\Lib\site-packages\linkedin_api\linkedin.py", line 44, in __init__
+    self.client.authenticate(username, password)
+    ~~~~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\informaticos\AppData\Local\Programs\Python\Python313\Lib\site-packages\linkedin_api\client.py", line 116, in authenticate
+    raise ChallengeException(data["login_result"])
+linkedin_api.client.ChallengeException: CHALLENGE
+2025-04-24 13:11:06,059 - INFO - Resultados encontrados: 0
+2025-04-24 13:20:19,732 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 13:20:19,732 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 13:20:20,472 - INFO - Autenticación exitosa
+2025-04-24 13:20:20,473 - INFO - Realizando búsqueda de empleos
+2025-04-24 13:20:20,473 - ERROR - Error en scrape_linkedin: 'Linkedin' object has no attribute 'search_jobs'
+Traceback (most recent call last):
+  File "C:\Users\informaticos\desktop\Proyectos\appwebmercado\app_web\datos_externos\linkedin_scraper.py", line 34, in scrape_linkedin
+    empleos = api.search_jobs(**params, limit=25)
+              ^^^^^^^^^^^^^^^
+AttributeError: 'Linkedin' object has no attribute 'search_jobs'
+2025-04-24 13:20:20,475 - INFO - Resultados encontrados: 0
+2025-04-24 13:23:24,738 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 13:23:24,739 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 13:23:25,387 - INFO - Autenticación exitosa
+2025-04-24 13:23:25,388 - INFO - Realizando búsqueda de empleos
+2025-04-24 13:23:28,048 - ERROR - Error en scrape_linkedin: 'data'
+Traceback (most recent call last):
+  File "C:\Users\informaticos\desktop\Proyectos\appwebmercado\app_web\datos_externos\linkedin_scraper.py", line 33, in scrape_linkedin
+    empleos = api.search(params, limit=25)  # Usar método genérico 'search'
+  File "C:\Users\informaticos\AppData\Local\Programs\Python\Python313\Lib\site-packages\linkedin_api\linkedin.py", line 95, in search
+    for i in range(len(data["data"]["elements"])):
+                       ~~~~^^^^^^^^
+KeyError: 'data'
+2025-04-24 13:23:28,076 - INFO - Resultados encontrados: 0
+2025-04-24 13:48:58,682 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 13:48:58,682 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 13:48:59,387 - INFO - Autenticación exitosa
+2025-04-24 13:48:59,387 - INFO - Realizando búsqueda de empleos
+2025-04-24 13:48:59,388 - ERROR - Error en scrape_linkedin: 'Client' object has no attribute 'get_search_results'
+Traceback (most recent call last):
+  File "C:\Users\informaticos\desktop\Proyectos\appwebmercado\app_web\datos_externos\linkedin_scraper.py", line 35, in scrape_linkedin
+    response = api.client.get_search_results(params, count=25)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'Client' object has no attribute 'get_search_results'
+2025-04-24 13:48:59,390 - INFO - Resultados encontrados: 0
+2025-04-24 13:58:12,461 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 13:58:12,462 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 13:58:13,278 - INFO - Autenticación exitosa
+2025-04-24 13:58:13,279 - INFO - Realizando búsqueda de empleos
+2025-04-24 13:58:13,279 - ERROR - Error en scrape_linkedin: 'Linkedin' object has no attribute 'search_jobs'
+Traceback (most recent call last):
+  File "C:\Users\informaticos\desktop\Proyectos\appwebmercado\app_web\datos_externos\linkedin_scraper.py", line 34, in scrape_linkedin
+    empleos = api.search_jobs(**params, limit=5)  # Reducir límite para evitar detección
+              ^^^^^^^^^^^^^^^
+AttributeError: 'Linkedin' object has no attribute 'search_jobs'
+2025-04-24 13:58:13,282 - INFO - Resultados encontrados: 0
+2025-04-24 13:59:29,714 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 13:59:29,714 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 13:59:30,522 - INFO - Autenticación exitosa
+2025-04-24 13:59:30,523 - INFO - Realizando búsqueda de empleos
+2025-04-24 13:59:30,523 - ERROR - Error en scrape_linkedin: 'Linkedin' object has no attribute 'search_jobs'
+Traceback (most recent call last):
+  File "C:\Users\informaticos\desktop\Proyectos\appwebmercado\app_web\datos_externos\linkedin_scraper.py", line 34, in scrape_linkedin
+    empleos = api.search_jobs(**params, limit=5)  # Reducir límite para evitar detección
+              ^^^^^^^^^^^^^^^
+AttributeError: 'Linkedin' object has no attribute 'search_jobs'
+2025-04-24 13:59:30,525 - INFO - Resultados encontrados: 0
+2025-04-24 14:00:47,069 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:00:47,069 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:00:47,734 - INFO - Autenticación exitosa
+2025-04-24 14:00:47,735 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:00:52,538 - ERROR - Error en scrape_linkedin: 'data'
+Traceback (most recent call last):
+  File "C:\Users\informaticos\desktop\Proyectos\appwebmercado\app_web\datos_externos\linkedin_scraper.py", line 36, in scrape_linkedin
+    empleos = api.search(params, limit=5)  # Probar con método genérico 'search'
+  File "C:\Users\informaticos\AppData\Local\Programs\Python\Python313\Lib\site-packages\linkedin_api\linkedin.py", line 95, in search
+    for i in range(len(data["data"]["elements"])):
+                       ~~~~^^^^^^^^
+KeyError: 'data'
+2025-04-24 14:00:52,547 - INFO - Resultados encontrados: 0
+2025-04-24 14:01:25,946 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:01:25,946 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:01:28,825 - INFO - Autenticación exitosa
+2025-04-24 14:01:28,826 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:01:33,515 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:01:33,516 - INFO - Scraping completado. Total de ofertas procesadas: 0
+2025-04-24 14:01:33,519 - INFO - Resultados encontrados: 0
+2025-04-24 14:05:53,119 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:05:53,119 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:05:54,933 - INFO - Autenticación exitosa
+2025-04-24 14:05:54,934 - ERROR - Error en scrape_linkedin: name 'programador' is not defined
+Traceback (most recent call last):
+  File "C:\Users\informaticos\desktop\Proyectos\appwebmercado\app_web\datos_externos\linkedin_scraper.py", line 29, in scrape_linkedin
+    'keywords': programador,
+                ^^^^^^^^^^^
+NameError: name 'programador' is not defined
+2025-04-24 14:05:54,950 - INFO - Resultados encontrados: 0
+2025-04-24 14:06:12,715 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:06:12,715 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:06:14,416 - INFO - Autenticación exitosa
+2025-04-24 14:06:14,416 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:06:16,935 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:06:16,936 - INFO - Scraping completado. Total de ofertas procesadas: 0
+2025-04-24 14:06:16,939 - INFO - Resultados encontrados: 0
+2025-04-24 14:06:41,261 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:06:41,261 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:06:43,338 - INFO - Autenticación exitosa
+2025-04-24 14:06:43,339 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:06:46,039 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:06:46,040 - INFO - Scraping completado. Total de ofertas procesadas: 0
+2025-04-24 14:06:46,043 - INFO - Resultados encontrados: 0
+2025-04-24 14:07:53,524 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:07:53,524 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:07:55,530 - INFO - Autenticación exitosa
+2025-04-24 14:07:55,531 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:07:59,034 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:07:59,035 - INFO - Scraping completado. Total de ofertas procesadas: 0
+2025-04-24 14:07:59,037 - INFO - Resultados encontrados: 0
+2025-04-24 14:10:48,627 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:10:48,627 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:10:48,627 - INFO - Intentando autenticación con LinkedIn API
+2025-04-24 14:10:50,507 - INFO - Autenticación exitosa
+2025-04-24 14:10:50,508 - INFO - Métodos disponibles en api: ['_MAX_POST_COUNT', '_MAX_REPEATED_REQUESTS', '_MAX_SEARCH_COUNT', '_MAX_UPDATE_COUNT', '__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__firstlineno__', '__format__', '__ge__', '__getattribute__', '__getstate__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__static_attributes__', '__str__', '__subclasshook__', '__weakref__', '_fetch', '_get_list_feed_posts_and_list_feed_urns', '_post', 'add_connection', 'client', 'get_company', 'get_company_updates', 'get_conversation', 'get_conversation_details', 'get_conversations', 'get_current_profile_views', 'get_feed_posts', 'get_invitations', 'get_job', 'get_post_comments', 'get_profile', 'get_profile_connections', 'get_profile_contact_info', 'get_profile_member_badges', 'get_profile_network_info', 'get_profile_posts', 'get_profile_privacy_settings', 'get_profile_skills', 'get_profile_updates', 'get_school', 'get_user_profile', 'logger', 'mark_conversation_as_seen', 'remove_connection', 'reply_invitation', 'search', 'search_companies', 'search_jobs', 'search_people', 'send_message', 'track', 'unfollow_entity', 'view_profile']
+2025-04-24 14:10:50,508 - INFO - Parámetros de búsqueda: {'keywords': 'desarrollador', 'location': 'Madrid', 'entity_type': 'JOBS'}
+2025-04-24 14:10:50,509 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:10:52,945 - INFO - Respuesta cruda de api.search: []
+2025-04-24 14:10:52,946 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:10:52,946 - INFO - Scraping completado. Total de ofertas procesadas: 0
+2025-04-24 14:10:52,949 - INFO - Resultados encontrados: 0
+2025-04-24 14:12:58,688 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:12:58,689 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:12:58,689 - INFO - Intentando autenticación con LinkedIn API
+2025-04-24 14:13:00,484 - INFO - Autenticación exitosa
+2025-04-24 14:13:00,485 - INFO - Parámetros de búsqueda: {'keywords': 'desarrollador', 'location': 'Madrid'}
+2025-04-24 14:13:00,485 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:13:06,032 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:13:06,032 - INFO - Scraping completado. Total de ofertas procesadas: 0
+2025-04-24 14:13:06,036 - INFO - Resultados encontrados: 0
+2025-04-24 14:15:47,637 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:15:47,637 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:15:47,637 - INFO - Intentando autenticación con LinkedIn API
+2025-04-24 14:15:49,492 - INFO - Autenticación exitosa
+2025-04-24 14:15:49,492 - INFO - Parámetros de búsqueda: {'keywords': 'desarrollador', 'location': 'Madrid'}
+2025-04-24 14:15:49,493 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:15:55,011 - INFO - Respuesta cruda de api.search_jobs: []
+2025-04-24 14:15:55,011 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:15:55,012 - INFO - Scraping completado. Total de ofertas procesadas: 0
+2025-04-24 14:15:55,015 - INFO - Resultados encontrados: 0
+2025-04-24 14:18:40,608 - INFO - Iniciando búsqueda de ofertas de trabajo
+2025-04-24 14:18:40,608 - INFO - Iniciando scrape_linkedin con título: 'desarrollador', ubicación: 'Madrid'
+2025-04-24 14:18:40,608 - INFO - Intentando autenticación con LinkedIn API
+2025-04-24 14:18:42,335 - INFO - Autenticación exitosa
+2025-04-24 14:18:42,336 - INFO - Parámetros de búsqueda: {'keywords': 'developer', 'location': 'Spain'}
+2025-04-24 14:18:42,336 - INFO - Realizando búsqueda de empleos
+2025-04-24 14:18:45,126 - INFO - Respuesta cruda de api.search_jobs: []
+2025-04-24 14:18:45,126 - INFO - Encontradas 0 ofertas en LinkedIn
+2025-04-24 14:18:45,127 - INFO - Scraping completado. Total de ofertas procesadas: 0
+2025-04-24 14:18:45,130 - INFO - Resultados encontrados: 0
