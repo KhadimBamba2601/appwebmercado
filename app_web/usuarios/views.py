@@ -8,7 +8,7 @@ from django.contrib.auth import login, authenticate
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from django.views.generic import ListView, UpdateView
 from django.urls import reverse_lazy
-from .forms import RegistroForm, PerfilForm
+from .forms import RegistroUsuarioForm, PerfilForm
 
 @login_required
 @rol_requerido('admin')
@@ -29,7 +29,7 @@ def crear_usuario(request):
         usuario.save()
         messages.success(request, 'Usuario creado exitosamente.')
         return redirect('usuarios:lista_usuarios')
-    return render(request, 'usuarios/crear.html', {'roles': Usuario.ROL_CHOICES})
+    return render(request, 'usuarios/crear.html', {'roles': Usuario.Rol.choices})
 
 @login_required
 @rol_requerido('admin')
@@ -44,7 +44,7 @@ def editar_usuario(request, id):
         usuario.save()
         messages.success(request, 'Usuario actualizado exitosamente.')
         return redirect('usuarios:lista_usuarios')
-    return render(request, 'usuarios/editar.html', {'usuario': usuario, 'roles': Usuario.ROL_CHOICES})
+    return render(request, 'usuarios/editar.html', {'usuario': usuario, 'roles': Usuario.Rol.choices})
 
 @login_required
 @rol_requerido('admin')
@@ -62,13 +62,13 @@ def logout_view(request):
 
 def registro(request):
     if request.method == 'POST':
-        form = RegistroForm(request.POST)
+        form = RegistroUsuarioForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
             return redirect('dashboard')
     else:
-        form = RegistroForm()
+        form = RegistroUsuarioForm()
     return render(request, 'usuarios/registro.html', {'form': form})
 
 @login_required
@@ -88,7 +88,7 @@ class ListaUsuarios(LoginRequiredMixin, UserPassesTestMixin, ListView):
     context_object_name = 'usuarios'
 
     def test_func(self):
-        return self.request.user.es_admin()
+        return self.request.user.es_administrador()
 
 class EditarUsuario(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     model = Usuario
@@ -97,4 +97,4 @@ class EditarUsuario(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     success_url = reverse_lazy('lista_usuarios')
 
     def test_func(self):
-        return self.request.user.es_admin()
+        return self.request.user.es_administrador()

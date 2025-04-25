@@ -1,6 +1,6 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
-from analisis_mercado.models import OfertaEmpleo, Habilidad
+from analisis_mercado.models import OfertaEmpleo
 from proyectos.models import Proyecto, Tarea
 from django.core.paginator import Paginator
 from django.contrib import messages
@@ -15,6 +15,7 @@ import logging
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from usuarios.models import Habilidad
 
 # Configurar logging
 logger = logging.getLogger(__name__)

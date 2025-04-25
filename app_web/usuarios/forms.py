@@ -3,18 +3,14 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import Usuario
 from analisis_mercado.models import Habilidad
 
-class RegistroForm(UserCreationForm):
-    email = forms.EmailField(required=True)
-    rol = forms.ChoiceField(choices=Usuario.ROL_CHOICES)
-    habilidades = forms.ModelMultipleChoiceField(
-        queryset=Habilidad.objects.all(),
-        required=False,
-        widget=forms.CheckboxSelectMultiple
-    )
+class RegistroUsuarioForm(UserCreationForm):
+    fecha_nacimiento = forms.DateField(required=False)
+    rol = forms.ChoiceField(choices=Usuario.Rol.choices)
+    telefono = forms.CharField(max_length=15, required=False)
 
     class Meta:
         model = Usuario
-        fields = ('username', 'email', 'password1', 'password2', 'rol', 'habilidades')
+        fields = ('username', 'first_name', 'last_name', 'email', 'fecha_nacimiento', 'rol', 'telefono', 'password1', 'password2')
 
     def save(self, commit=True):
         user = super().save(commit=False)
@@ -22,7 +18,6 @@ class RegistroForm(UserCreationForm):
         user.rol = self.cleaned_data['rol']
         if commit:
             user.save()
-            user.habilidades.set(self.cleaned_data['habilidades'])
         return user
 
 class PerfilForm(forms.ModelForm):

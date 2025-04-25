@@ -8,6 +8,10 @@ from django.utils import timezone
 from django.db.models.functions import Cast
 from django.db.models import FloatField
 from django.core.paginator import Paginator
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+import json
+from .scrapers import InfoJobsScraper, TecnoempleoScraper, LinkedInScraper
 
 # Create your views here.
 
@@ -203,3 +207,88 @@ def ofertas_empleo(request):
     }
     
     return render(request, 'analisis_mercado/ofertas_empleo.html', context)
+
+@csrf_exempt
+def importar_ofertas(request):
+    """
+    Endpoint para importar ofertas de empleo desde diferentes fuentes.
+    """
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Método no permitido'}, status=405)
+    
+    try:
+        data = json.loads(request.body)
+        fuente = data.get('fuente', 'Todas')
+        titulo = data.get('titulo', '')
+        ubicacion = data.get('ubicacion', '')
+        
+        total_importadas = 0
+        infojobs = 0
+        tecnoempleo = 0
+        linkedin = 0
+        
+        # Importar de InfoJobs
+        if fuente in ['Todas', 'InfoJobs']:
+            scraper = InfoJobsScraper()
+            ofertas = scraper.buscar_ofertas(titulo, ubicacion)
+            for oferta in ofertas:
+                OfertaEmpleo.objects.create(
+                    titulo=oferta['titulo'],
+                    empresa=oferta['empresa'],
+                    ubicacion=oferta['ubicacion'],
+                    tipo_trabajo=oferta['tipo'],
+                    descripcion=oferta['descripcion'],
+                    requisitos=oferta.get('requisitos', ''),
+                    fecha_publicacion=oferta['fecha'],
+                    fuente='InfoJobs'
+                )
+            infojobs = len(ofertas)
+            total_importadas += infojobs
+        
+        # Importar de Tecnoempleo
+        if fuente in ['Todas', 'Tecnoempleo']:
+            scraper = TecnoempleoScraper()
+            ofertas = scraper.buscar_ofertas(titulo, ubicacion)
+            for oferta in ofertas:
+                OfertaEmpleo.objects.create(
+                    titulo=oferta['titulo'],
+                    empresa=oferta['empresa'],
+                    ubicacion=oferta['ubicacion'],
+                    tipo_trabajo=oferta['tipo'],
+                    descripcion=oferta['descripcion'],
+                    requisitos=oferta.get('requisitos', ''),
+                    fecha_publicacion=oferta['fecha'],
+                    fuente='Tecnoempleo'
+                )
+            tecnoempleo = len(ofertas)
+            total_importadas += tecnoempleo
+        
+        # Importar de LinkedIn
+        if fuente in ['Todas', 'LinkedIn']:
+            scraper = LinkedInScraper()
+            ofertas = scraper.buscar_ofertas(titulo, ubicacion)
+            for oferta in ofertas:
+                OfertaEmpleo.objects.create(
+                    titulo=oferta['titulo'],
+                    empresa=oferta['empresa'],
+                    ubicacion=oferta['ubicacion'],
+                    tipo_trabajo=oferta['tipo'],
+                    descripcion=oferta['descripcion'],
+                    requisitos=oferta.get('requisitos', ''),
+                    fecha_publicacion=oferta['fecha'],
+                    fuente='LinkedIn'
+                )
+            linkedin = len(ofertas)
+            total_importadas += linkedin
+        
+        return JsonResponse({
+            'total_importadas': total_importadas,
+            'infojobs': infojobs,
+            'tecnoempleo': tecnoempleo,
+            'linkedin': linkedin
+        })
+        
+    except json.JSONDecodeError:
+        return JsonResponse({'error': 'JSON inválido'}, status=400)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)

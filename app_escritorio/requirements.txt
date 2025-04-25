@@ -1,5 +1,8 @@
 PyQt6==6.6.1
+psycopg2-binary==2.9.9
 python-dotenv==1.0.0
+pyqtgraph==0.13.3
+numpy==1.26.3
 requests==2.31.0
 beautifulsoup4==4.12.2
 linkedin-api==2.0.0 

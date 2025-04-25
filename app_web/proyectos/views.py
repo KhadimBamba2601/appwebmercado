@@ -14,7 +14,7 @@ from django.utils import timezone
 # Lista de proyectos predefinidos
 PROYECTOS_PREDEFINIDOS = {
     'busqueda_ofertas': {
-        'nombre': 'Búsqueda de Ofertas Personalizadas',
+        'titulo': 'Búsqueda de Ofertas Personalizadas',
         'descripcion': 'Proyecto para buscar y aplicar a ofertas de empleo personalizadas.',
         'tareas': [
             {'titulo': 'Configurar filtros de búsqueda', 'descripcion': 'Establecer habilidades, ubicación y salario deseado.', 'prioridad': 'Baja', 'estado': 'pendiente'},
@@ -24,7 +24,7 @@ PROYECTOS_PREDEFINIDOS = {
         ]
     },
     'optimizacion_perfil': {
-        'nombre': 'Optimización de Perfil Laboral',
+        'titulo': 'Optimización de Perfil Laboral',
         'descripcion': 'Mejorar el perfil profesional para aumentar las oportunidades de empleo.',
         'tareas': [
             {'titulo': 'Actualizar currículum', 'descripcion': 'Incorporar habilidades demandadas y experiencia reciente.', 'prioridad': 'Alta', 'estado': 'pendiente'},
@@ -33,11 +33,11 @@ PROYECTOS_PREDEFINIDOS = {
         ]
     },
     'preparacion_entrevistas': {
-        'nombre': 'Preparación para Entrevistas',
+        'titulo': 'Preparación para Entrevistas',
         'descripcion': 'Prepararse para entrevistas de trabajo de manera efectiva.',
         'tareas': [
             {'titulo': 'Investigar la empresa', 'descripcion': 'Conocer la cultura, valores y noticias recientes de la empresa.', 'prioridad': 'Alta', 'estado': 'pendiente'},
-            {'titulo': 'Practicar respuestas a preguntas comunes', 'descripcion': 'Preparar respuestas para preguntas frecuentes en entrevistas.', 'prioridad': 'Media', 'ород': 'pendiente'},
+            {'titulo': 'Practicar respuestas a preguntas comunes', 'descripcion': 'Preparar respuestas para preguntas frecuentes en entrevistas.', 'prioridad': 'Media', 'estado': 'pendiente'},
             {'titulo': 'Preparar preguntas para el entrevistador', 'descripcion': 'Formular preguntas relevantes para hacer al final de la entrevista.', 'prioridad': 'Baja', 'estado': 'pendiente'},
         ]
     },
@@ -48,34 +48,42 @@ PROYECTOS_PREDEFINIDOS = {
 class ProyectoForm(forms.ModelForm):
     class Meta:
         model = Proyecto
-        fields = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin']
+        fields = ['titulo', 'descripcion', 'fecha_inicio', 'fecha_fin_estimada', 'estado', 'creador', 'colaboradores', 'habilidades_requeridas']
         labels = {
-            'nombre': 'Nombre del Proyecto',
+            'titulo': 'Título del Proyecto',
             'descripcion': 'Descripción',
             'fecha_inicio': 'Fecha de Inicio',
-            'fecha_fin': 'Fecha de Fin',
+            'fecha_fin_estimada': 'Fecha de Fin Estimada',
+            'estado': 'Estado',
+            'creador': 'Creador del Proyecto',
+            'colaboradores': 'Colaboradores',
+            'habilidades_requeridas': 'Habilidades Requeridas',
         }
         widgets = {
             'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
-            'fecha_fin': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_fin_estimada': forms.DateInput(attrs={'type': 'date'}),
+            'colaboradores': forms.SelectMultiple(attrs={'class': 'form-select'}),
+            'habilidades_requeridas': forms.SelectMultiple(attrs={'class': 'form-select'}),
         }
 
 class TareaForm(forms.ModelForm):
     class Meta:
         model = Tarea
-        fields = ['titulo', 'descripcion', 'estado', 'prioridad', 'fecha_limite', 'colaboradores', 'habilidades_requeridas']
+        fields = ['titulo', 'descripcion', 'estado', 'prioridad', 'fecha_inicio', 'fecha_fin_estimada', 'asignado_a', 'habilidades_requeridas']
         labels = {
             'titulo': 'Título de la Tarea',
             'descripcion': 'Descripción',
             'estado': 'Estado',
             'prioridad': 'Prioridad',
-            'fecha_limite': 'Fecha Límite',
-            'colaboradores': 'Colaboradores',
+            'fecha_inicio': 'Fecha de Inicio',
+            'fecha_fin_estimada': 'Fecha de Fin Estimada',
+            'asignado_a': 'Asignado a',
             'habilidades_requeridas': 'Habilidades Requeridas',
         }
         widgets = {
-            'fecha_limite': forms.DateInput(attrs={'type': 'date'}),
-            'colaboradores': forms.SelectMultiple(attrs={'class': 'form-select'}),
+            'fecha_inicio': forms.DateInput(attrs={'type': 'date'}),
+            'fecha_fin_estimada': forms.DateInput(attrs={'type': 'date'}),
+            'asignado_a': forms.Select(attrs={'class': 'form-select'}),
             'habilidades_requeridas': forms.SelectMultiple(attrs={'class': 'form-select'}),
         }
 
@@ -93,22 +101,20 @@ def lista_proyectos(request):
 @rol_requerido('gestor', 'admin')
 def crear_proyecto(request):
     if request.method == 'POST':
-        nombre = request.POST.get('nombre')
+        titulo = request.POST.get('titulo')
         descripcion = request.POST.get('descripcion')
-        gestor_id = request.POST.get('gestor')
         fecha_inicio = request.POST.get('fecha_inicio')
-        fecha_fin = request.POST.get('fecha_fin')
+        fecha_fin_estimada = request.POST.get('fecha_fin_estimada')
         estado = request.POST.get('estado')
         predefinido = request.POST.get('predefinido')
 
         try:
-            gestor = Usuario.objects.get(id=gestor_id)
             proyecto = Proyecto(
-                nombre=nombre,
+                titulo=titulo,
                 descripcion=descripcion,
-                gestor=gestor,
+                creador=request.user,
                 fecha_inicio=fecha_inicio,
-                fecha_fin=fecha_fin,
+                fecha_fin_estimada=fecha_fin_estimada,
                 estado=estado
             )
             proyecto.save()
@@ -122,19 +128,17 @@ def crear_proyecto(request):
                         descripcion=tarea_data['descripcion'],
                         estado=tarea_data['estado'],
                         prioridad=tarea_data['prioridad'],
-                        fecha_limite=timezone.now().date() + timezone.timedelta(days=30)  # Fecha límite de ejemplo
+                        fecha_fin_estimada=timezone.now().date() + timezone.timedelta(days=30)  # Fecha límite de ejemplo
                     )
 
             messages.success(request, 'Proyecto creado exitosamente.')
             return redirect('proyectos:lista_proyectos')
-        except Usuario.DoesNotExist:
-            messages.error(request, 'El gestor seleccionado no existe.')
         except Exception as e:
             messages.error(request, f'Error al crear el proyecto: {str(e)}')
 
-    gestores = Usuario.objects.filter(rol='gestor')
+    gestores = Usuario.objects.filter(rol='GESTOR')
     predefinidos = [
-        {'clave': clave, 'nombre': data['nombre']}
+        {'clave': clave, 'titulo': data['titulo']}
         for clave, data in PROYECTOS_PREDEFINIDOS.items()
     ]
     return render(request, 'proyectos/crear.html', {'gestores': gestores, 'predefinidos': predefinidos})
@@ -142,12 +146,17 @@ def crear_proyecto(request):
 @login_required(login_url='/cuentas/login/')
 @rol_requerido('gestor', 'admin')
 def editar_proyecto(request, id):
-    proyecto = get_object_or_404(Proyecto, id=id, gestor=request.user)
+    proyecto = get_object_or_404(Proyecto, id=id)
+    # Solo el creador o un administrador pueden editar el proyecto
+    if not (request.user == proyecto.creador or request.user.es_administrador()):
+        messages.error(request, "No tienes permiso para editar este proyecto.")
+        return redirect('proyectos:lista_proyectos')
+    
     if request.method == 'POST':
         form = ProyectoForm(request.POST, instance=proyecto)
         if form.is_valid():
             form.save()
-            messages.success(request, f"El proyecto '{proyecto.nombre}' ha sido actualizado con éxito.")
+            messages.success(request, f"El proyecto '{proyecto.titulo}' ha sido actualizado con éxito.")
             return redirect('proyectos:lista_proyectos')
         else:
             messages.error(request, "Por favor, corrige los errores en el formulario.")
@@ -158,10 +167,15 @@ def editar_proyecto(request, id):
 @login_required(login_url='/cuentas/login/')
 @rol_requerido('gestor', 'admin')
 def eliminar_proyecto(request, id):
-    proyecto = get_object_or_404(Proyecto, id=id, gestor=request.user)
+    proyecto = get_object_or_404(Proyecto, id=id)
+    # Solo el creador o un administrador pueden eliminar el proyecto
+    if not (request.user == proyecto.creador or request.user.es_administrador()):
+        messages.error(request, "No tienes permiso para eliminar este proyecto.")
+        return redirect('proyectos:lista_proyectos')
+    
     if request.method == 'POST':
         proyecto.delete()
-        messages.success(request, f"El proyecto '{proyecto.nombre}' ha sido eliminado con éxito.")
+        messages.success(request, f"El proyecto '{proyecto.titulo}' ha sido eliminado con éxito.")
         return redirect('proyectos:lista_proyectos')
     return render(request, 'proyectos/eliminar.html', {'proyecto': proyecto, 'titulo': 'Eliminar Proyecto'})
 

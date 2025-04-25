@@ -9,4 +9,5 @@ urlpatterns = [
     path('habilidades/', views.habilidades_demandadas, name='habilidades_demandadas'),
     path('ofertas/', views.ofertas_empleo, name='ofertas_empleo'),
     path('busqueda/', views.busqueda_avanzada, name='busqueda_avanzada'),
+    path('api/ofertas/importar/', views.importar_ofertas, name='importar_ofertas'),
 ] 

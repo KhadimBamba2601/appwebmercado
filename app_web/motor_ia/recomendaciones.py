@@ -1,5 +1,6 @@
 # motor_ia/recomendaciones.py
-from proyectos.models import Tarea, Usuario
+from proyectos.models import Tarea
+from usuarios.models import Usuario
 from django.contrib.auth.models import Group
 from django.db.models import Count
 
@@ -17,7 +18,7 @@ def recomendar_usuarios_tarea(tarea_id):
             return {"error": "La tarea no tiene habilidades requeridas definidas."}
 
         # Obtener colaboradores (excluyendo Admins y Gestores)
-        colaboradores = Usuario.objects.filter(groups__name='Colaborador').annotate(
+        colaboradores = Usuario.objects.filter(rol=Usuario.Rol.COLABORADOR).annotate(
             num_tareas=Count('tarea__id', distinct=True)
         )
         recomendaciones = []
