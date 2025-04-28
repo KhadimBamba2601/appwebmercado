@@ -1,0 +1,14 @@
+[Unit]
+Description=AppWebMercado Desktop Application
+After=network.target
+
+[Service]
+Type=simple
+User=appuser
+WorkingDirectory=/home/appuser/appwebmercado/app_escritorio
+ExecStart=/home/appuser/appwebmercado/env/bin/python main.py
+Restart=on-failure
+Environment=DISPLAY=:0
+
+[Install]
+WantedBy=multi-user.target 

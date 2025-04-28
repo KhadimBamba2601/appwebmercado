@@ -1,0 +1,385 @@
+# GUÍA DE DESPLIEGUE: APLICACIÓN DE ESCRITORIO EN PROVEEDOR CLOUD GRATUITO
+# =====================================================================
+
+Esta guía describe paso a paso cómo desplegar la aplicación de escritorio "Gestor de Mercado Laboral" 
+en un proveedor cloud gratuito utilizando Google Cloud Platform (GCP) con su capa gratuita.
+
+## ÍNDICE
+1. Requisitos previos
+2. Configuración de la cuenta en GCP
+3. Configuración del entorno de desarrollo
+4. Preparación de la aplicación
+5. Configuración de la base de datos
+6. Despliegue en GCP
+7. Configuración de acceso remoto
+8. Verificación y pruebas
+9. Mantenimiento y monitoreo
+10. Solución de problemas comunes
+
+## 1. REQUISITOS PREVIOS
+----------------------
+- Cuenta de Google (para acceder a GCP)
+- Git instalado en tu máquina local
+- Python 3.8 o superior instalado
+- Conocimientos básicos de línea de comandos
+- Conexión a Internet estable
+
+## 2. CONFIGURACIÓN DE LA CUENTA EN GCP
+-------------------------------------
+1. Visita https://cloud.google.com/ y crea una cuenta si no tienes una
+2. Activa la capa gratuita de GCP (Free Tier)
+3. Crea un nuevo proyecto en GCP:
+   - Ve a la consola de GCP
+   - Haz clic en "Seleccionar proyecto" en la barra superior
+   - Haz clic en "Nuevo proyecto"
+   - Nombre: "appwebmercado"
+   - Haz clic en "Crear"
+4. Habilita la facturación (requerido incluso para la capa gratuita)
+5. Habilita las APIs necesarias:
+   - Compute Engine API
+   - Cloud SQL Admin API
+   - Cloud Storage API
+
+## 3. CONFIGURACIÓN DEL ENTORNO DE DESARROLLO
+-------------------------------------------
+1. Instala Google Cloud SDK en tu máquina local:
+   - Windows: Descarga el instalador desde https://cloud.google.com/sdk/docs/install
+   - Linux: Sigue las instrucciones en https://cloud.google.com/sdk/docs/install-sdk#linux
+   - macOS: Sigue las instrucciones en https://cloud.google.com/sdk/docs/install-sdk#mac
+
+2. Inicializa el SDK:
+   ```
+   gcloud init
+   ```
+   - Selecciona tu cuenta de Google
+   - Selecciona el proyecto "appwebmercado"
+
+3. Configura la región y zona por defecto:
+   ```
+   gcloud config set compute/region us-central1
+   gcloud config set compute/zone us-central1-a
+   ```
+
+## 4. PREPARACIÓN DE LA APLICACIÓN
+--------------------------------
+1. Clona el repositorio en tu máquina local:
+   ```
+   git clone [URL_DEL_REPOSITORIO]
+   cd appwebmercado
+   ```
+
+2. Crea un archivo .env para las variables de entorno:
+   ```
+   # Base de datos
+   DB_NAME=appwebmercado
+   DB_USER=postgres
+   DB_PASSWORD=[CONTRASEÑA_SEGURA]
+   DB_HOST=[IP_DE_CLOUD_SQL]
+   DB_PORT=5432
+
+   # API
+   API_BASE_URL=http://localhost:8000/api
+   API_TIMEOUT=30
+
+   # Logging
+   LOG_LEVEL=INFO
+   LOG_FILE=app.log
+   ```
+
+3. Modifica el archivo config.py para usar variables de entorno:
+   ```
+   # En app_escritorio/config.py
+   import os
+   from dotenv import load_dotenv
+
+   # Cargar variables de entorno
+   load_dotenv()
+
+   # Configuración de la base de datos
+   DB_CONFIG = {
+       'db_name': os.getenv('DB_NAME', 'appwebmercado'),
+       'db_user': os.getenv('DB_USER', 'postgres'),
+       'db_password': os.getenv('DB_PASSWORD', 'postgres'),
+       'db_host': os.getenv('DB_HOST', 'localhost'),
+       'db_port': os.getenv('DB_PORT', '5432')
+   }
+   
+   # ... resto del archivo ...
+   ```
+
+4. Crea un script de inicio para la aplicación:
+   ```
+   # En app_escritorio/start.sh
+   #!/bin/bash
+   export DISPLAY=:0
+   python main.py
+   ```
+
+5. Crea un archivo de configuración para el servicio:
+   ```
+   # En app_escritorio/appwebmercado.service
+   [Unit]
+   Description=AppWebMercado Desktop Application
+   After=network.target
+
+   [Service]
+   Type=simple
+   User=appuser
+   WorkingDirectory=/home/appuser/appwebmercado/app_escritorio
+   ExecStart=/home/appuser/appwebmercado/env/bin/python main.py
+   Restart=on-failure
+   Environment=DISPLAY=:0
+
+   [Install]
+   WantedBy=multi-user.target
+   ```
+
+## 5. CONFIGURACIÓN DE LA BASE DE DATOS
+------------------------------------
+1. Crea una instancia de Cloud SQL (PostgreSQL):
+   ```
+   gcloud sql instances create appwebmercado-db \
+     --database-version=POSTGRES_12 \
+     --tier=db-f1-micro \
+     --region=us-central1 \
+     --root-password=[CONTRASEÑA_SEGURA]
+   ```
+
+2. Crea la base de datos:
+   ```
+   gcloud sql databases create appwebmercado --instance=appwebmercado-db
+   ```
+
+3. Crea un usuario para la aplicación:
+   ```
+   gcloud sql users create appuser \
+     --instance=appwebmercado-db \
+     --password=[CONTRASEÑA_SEGURA]
+   ```
+
+4. Configura la red para permitir conexiones desde la VM:
+   ```
+   gcloud sql instances patch appwebmercado-db \
+     --authorized-networks=[IP_DE_LA_VM]/32
+   ```
+
+5. Obtén la IP de conexión de la base de datos:
+   ```
+   gcloud sql instances describe appwebmercado-db --format="get(connectionName,ipAddresses[0].ipAddress)"
+   ```
+
+6. Actualiza el archivo .env con la IP de la base de datos
+
+## 6. DESPLIEGUE EN GCP
+---------------------
+1. Crea una VM en Compute Engine:
+   ```
+   gcloud compute instances create appwebmercado-vm \
+     --machine-type=e2-micro \
+     --zone=us-central1-a \
+     --image-family=ubuntu-2004-lts \
+     --image-project=ubuntu-os-cloud \
+     --boot-disk-size=20GB \
+     --tags=http-server,https-server
+   ```
+
+2. Configura el firewall para permitir tráfico SSH:
+   ```
+   gcloud compute firewall-rules create allow-ssh \
+     --allow tcp:22 \
+     --target-tags=ssh \
+     --description="Allow SSH access"
+   ```
+
+3. Configura el firewall para permitir tráfico VNC:
+   ```
+   gcloud compute firewall-rules create allow-vnc \
+     --allow tcp:5900 \
+     --target-tags=vnc \
+     --description="Allow VNC access"
+   ```
+
+4. Conéctate a la VM:
+   ```
+   gcloud compute ssh appwebmercado-vm
+   ```
+
+5. Instala las dependencias necesarias en la VM:
+   ```
+   sudo apt-get update
+   sudo apt-get install -y python3-pip python3-venv postgresql-client
+   sudo apt-get install -y xvfb x11vnc x11-xserver-utils
+   sudo apt-get install -y chromium-browser chromium-chromedriver
+   ```
+
+6. Configura el servidor X virtual:
+   ```
+   sudo apt-get install -y xfce4
+   sudo apt-get install -y tightvncserver
+   ```
+
+7. Configura VNC:
+   ```
+   vncserver :1
+   # Establece una contraseña cuando se solicite
+   ```
+
+8. Clona el repositorio en la VM:
+   ```
+   git clone [URL_DEL_REPOSITORIO]
+   cd appwebmercado
+   ```
+
+9. Crea y activa un entorno virtual:
+   ```
+   python3 -m venv env
+   source env/bin/activate
+   ```
+
+10. Instala las dependencias:
+    ```
+    pip install -r requirements.txt
+    ```
+
+11. Copia el archivo .env a la VM (desde tu máquina local):
+    ```
+    gcloud compute scp .env appwebmercado-vm:~/appwebmercado/
+    ```
+
+12. Inicializa la base de datos:
+    ```
+    cd app_escritorio
+    python init_db.py
+    ```
+
+13. Configura el servicio para iniciar automáticamente:
+    ```
+    sudo cp appwebmercado.service /etc/systemd/system/
+    sudo systemctl daemon-reload
+    sudo systemctl enable appwebmercado.service
+    sudo systemctl start appwebmercado.service
+    ```
+
+## 7. CONFIGURACIÓN DE ACCESO REMOTO
+---------------------------------
+1. Obtén la IP externa de la VM:
+   ```
+   gcloud compute instances describe appwebmercado-vm --format="get(networkInterfaces[0].accessConfigs[0].natIP)"
+   ```
+
+2. Configura un túnel SSH para VNC (desde tu máquina local):
+   ```
+   gcloud compute ssh appwebmercado-vm -- -L 5900:localhost:5900
+   ```
+
+3. Conéctate a la VM usando un cliente VNC:
+   - Usa la dirección: localhost:5900
+   - Usa la contraseña que configuraste para VNC
+
+## 8. VERIFICACIÓN Y PRUEBAS
+--------------------------
+1. Verifica que el servicio esté en ejecución:
+   ```
+   sudo systemctl status appwebmercado.service
+   ```
+
+2. Verifica los logs:
+   ```
+   tail -f app_escritorio/app.log
+   ```
+
+3. Prueba la conexión a la base de datos:
+   ```
+   psql -h [IP_DE_CLOUD_SQL] -U appuser -d appwebmercado
+   ```
+
+4. Prueba la funcionalidad de scraping:
+   - Abre la aplicación a través de VNC
+   - Navega a la sección de scraping
+   - Ejecuta una prueba de scraping
+
+5. Verifica la exportación de datos:
+   - Exporta datos en diferentes formatos (CSV, XLSX, JSON)
+   - Verifica que los archivos se generen correctamente
+
+## 9. MANTENIMIENTO Y MONITOREO
+----------------------------
+1. Configura alertas de costos en GCP:
+   - Ve a Billing > Budgets & Alerts
+   - Crea un presupuesto para mantenerte dentro de la capa gratuita
+
+2. Configura backups automáticos de la base de datos:
+   ```
+   gcloud sql instances patch appwebmercado-db --backup-start-time="23:00"
+   ```
+
+3. Monitorea el uso de recursos:
+   - Ve a Compute Engine > VM instances > appwebmercado-vm > Monitoring
+   - Configura alertas para uso alto de CPU o memoria
+
+4. Actualiza la aplicación:
+   ```
+   cd ~/appwebmercado
+   git pull
+   source env/bin/activate
+   pip install -r requirements.txt
+   sudo systemctl restart appwebmercado.service
+   ```
+
+## 10. SOLUCIÓN DE PROBLEMAS COMUNES
+---------------------------------
+1. Problema: La aplicación no inicia
+   Solución: 
+   - Verifica los logs: `tail -f app_escritorio/app.log`
+   - Verifica el estado del servicio: `sudo systemctl status appwebmercado.service`
+   - Reinicia el servicio: `sudo systemctl restart appwebmercado.service`
+
+2. Problema: Error de conexión a la base de datos
+   Solución:
+   - Verifica la IP de la base de datos en el archivo .env
+   - Verifica que la IP de la VM esté autorizada en Cloud SQL
+   - Prueba la conexión: `psql -h [IP_DE_CLOUD_SQL] -U appuser -d appwebmercado`
+
+3. Problema: Error de visualización (X Server)
+   Solución:
+   - Reinicia el servidor X: `sudo systemctl restart display-manager`
+   - Reinicia VNC: `vncserver -kill :1 && vncserver :1`
+
+4. Problema: Alto consumo de recursos
+   Solución:
+   - Verifica los procesos en ejecución: `top`
+   - Identifica procesos con alto consumo: `ps aux | grep python`
+   - Reinicia la VM si es necesario: `sudo reboot`
+
+5. Problema: La aplicación se cierra inesperadamente
+   Solución:
+   - Verifica los logs para errores
+   - Aumenta el tiempo de timeout en config.py
+   - Verifica la memoria disponible: `free -m`
+
+## NOTAS IMPORTANTES
+------------------
+- La capa gratuita de GCP tiene límites de uso. Monitorea tu consumo para evitar cargos.
+- Los recursos gratuitos incluyen:
+  - 1 VM e2-micro por mes
+  - 1 instancia de Cloud SQL db-f1-micro por mes
+  - 5GB de almacenamiento en Cloud Storage
+  - 1GB de transferencia de red saliente por mes
+
+- Para mantenerte dentro de la capa gratuita:
+  - Apaga la VM cuando no la uses: `gcloud compute instances stop appwebmercado-vm`
+  - Detén la instancia de Cloud SQL cuando no la uses: `gcloud sql instances patch appwebmercado-db --activation-policy NEVER`
+  - Configura alertas de presupuesto para recibir notificaciones cuando te acerques a los límites
+
+- Para ahorrar costos adicionales:
+  - Usa zonas y regiones con precios más bajos
+  - Minimiza el uso de almacenamiento
+  - Optimiza las consultas a la base de datos
+  - Configura el apagado automático de recursos no utilizados
+
+## RECURSOS ADICIONALES
+--------------------
+- Documentación de GCP: https://cloud.google.com/docs
+- Guía de la capa gratuita: https://cloud.google.com/free
+- Documentación de Cloud SQL: https://cloud.google.com/sql/docs
+- Documentación de Compute Engine: https://cloud.google.com/compute/docs 
